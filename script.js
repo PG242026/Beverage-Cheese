@@ -1,55 +1,46 @@
-/*
-Beverage & Cheese v1.0 SAFE
-Basis logica
-Later uitbreiden met:
-- AI herkenning
-- foto analyse
-- kaas database
-*/
-
-
-// controleren of app geladen is
 document.addEventListener("DOMContentLoaded", () => {
+    const cards = document.querySelectorAll(".card");
+    const drinkCard = cards[1];
+    const locationCard = cards[2];
+    const adviceCard = cards[3];
 
-    console.log("Beverage & Cheese gestart 🍷🧀");
+    const buttons = Array.from(document.querySelectorAll("button"));
+    const scanButton = buttons.find(button => button.innerText.includes("Scan"));
+    const manualButton = buttons.find(button => button.innerText.includes("Handmatig"));
+    const searchButton = buttons.find(button => button.innerText.includes("Zoek"));
 
+    function hide(element) {
+        if (element) element.style.display = "none";
+    }
 
-    // alle knoppen vinden
-    const buttons = document.querySelectorAll("button");
+    function show(element) {
+        if (element) element.style.display = "block";
+    }
 
+    hide(drinkCard);
+    hide(locationCard);
+    hide(adviceCard);
 
-    buttons.forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            if(button.innerText.includes("Scan")) {
-
-                alert(
-                    "📸 Etiket herkenning wordt later toegevoegd met AI."
-                );
-
-            }
-
-
-            if(button.innerText.includes("Handmatig")) {
-
-                alert(
-                    "✍️ Vul de drankgegevens en locatie in."
-                );
-
-            }
-
-
-            if(button.innerText.includes("Zoek")) {
-
-                alert(
-                    "🧀 AI kaasadvies wordt voorbereid."
-                );
-
-            }
-
+    if (scanButton) {
+        scanButton.addEventListener("click", () => {
+            alert("Fotoherkenning komt later. Vul nu handmatig de gegevens in.");
+            show(drinkCard);
+            show(locationCard);
+            hide(adviceCard);
         });
+    }
 
-    });
+    if (manualButton) {
+        manualButton.addEventListener("click", () => {
+            show(drinkCard);
+            show(locationCard);
+            hide(adviceCard);
+        });
+    }
 
+    if (searchButton) {
+        searchButton.addEventListener("click", () => {
+            show(adviceCard);
+        });
+    }
 });
