@@ -29,5 +29,7 @@ function toonEtiketFoto(event) {
     const voorbeeld = document.getElementById("etiketFoto");
     voorbeeld.src = URL.createObjectURL(foto);
     voorbeeld.style.display = "block";
+
+    document.getElementById("analyseKnop").style.display = "block";
   }
 }
