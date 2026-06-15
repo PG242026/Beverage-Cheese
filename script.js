@@ -44,3 +44,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+function toonDrankgegevens() {
+  document.getElementById("drankgegevens").style.display = "block";
+}
+
+function toonLocatie() {
+  document.getElementById("locatie").style.display = "block";
+}
+
+function toonAdvies() {
+  document.getElementById("advies").style.display = "block";
+}
