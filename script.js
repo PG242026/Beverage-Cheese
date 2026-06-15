@@ -15,3 +15,7 @@ window.onload = function() {
   document.getElementById("locatie").style.display = "none";
   document.getElementById("advies").style.display = "none";
 };
+function verbergDrankgegevens() {
+  document.getElementById("drankgegevens").style.display = "none";
+}
+
