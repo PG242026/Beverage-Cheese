@@ -28,7 +28,19 @@
 <button onclick="scanEtiket()">
 📸 Scan etiket
 </button>
+<input 
+type="file" 
+id="etiketCamera" 
+accept="image/*" 
+capture="environment" 
+style="display:none;"
+onchange="toonEtiketFoto(event)"
+>
 
+<img 
+id="etiketFoto" 
+style="display:none;max-width:300px;margin-top:20px;"
+>
 <p>of</p>
 
 <button onclick="toonDrankgegevens()">
