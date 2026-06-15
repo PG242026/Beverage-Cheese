@@ -19,5 +19,15 @@ function verbergDrankgegevens() {
   document.getElementById("drankgegevens").style.display = "none";
 }
 function scanEtiket() {
-  alert("📸 Etiket scanner wordt gestart. AI herkenning volgt.");
+  document.getElementById("etiketCamera").click();
+}
+
+function toonEtiketFoto(event) {
+  const foto = event.target.files[0];
+
+  if (foto) {
+    const voorbeeld = document.getElementById("etiketFoto");
+    voorbeeld.src = URL.createObjectURL(foto);
+    voorbeeld.style.display = "block";
+  }
 }
