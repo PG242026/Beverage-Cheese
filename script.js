@@ -18,4 +18,6 @@ window.onload = function() {
 function verbergDrankgegevens() {
   document.getElementById("drankgegevens").style.display = "none";
 }
-
+function scanEtiket() {
+  alert("📸 Etiket scanner wordt gestart. AI herkenning volgt.");
+}
