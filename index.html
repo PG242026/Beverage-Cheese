@@ -20,25 +20,28 @@
 
 <main>
 
-<section class="card">
-<h2>Start</h2>
 
-<button>
+<section class="card">
+
+<h2>Stap 1 🍷 Welke drank wil je combineren?</h2>
+
+<button onclick="toonDrankgegevens()">
 📸 Scan etiket
 </button>
 
 <p>of</p>
 
-<button>
+<button onclick="toonDrankgegevens()">
 ✍️ Handmatig invoeren
 </button>
 
 </section>
 
 
-<section class="card">
 
-<h2>🍷 Drankgegevens</h2>
+<section id="drankgegevens" class="card" style="display:none;">
+
+<h2>Stap 2 🍷 Drankgegevens</h2>
 
 <label>Soort drank</label>
 <select>
@@ -50,6 +53,7 @@
 <option>Anders</option>
 </select>
 
+
 <label>Kleur / type</label>
 <select>
 <option>Wit</option>
@@ -59,46 +63,63 @@
 <option>Donker</option>
 </select>
 
+
 <label>Naam drank</label>
 <input placeholder="Bijvoorbeeld Sauvignon Blanc">
 
 
+<button onclick="toonLocatie()">
+Volgende ➡️
+</button>
+
 </section>
 
 
-<section class="card">
 
-<h2>🌍 Locatie</h2>
+
+<section id="locatie" class="card" style="display:none;">
+
+<h2>Stap 3 🌍 Waar ben je?</h2>
 
 <input placeholder="Land">
 <input placeholder="Provincie / streek">
 <input placeholder="Plaats">
 
-<button>
+
+<button onclick="toonAdvies()">
 🤖 Zoek kaascombinatie
 </button>
 
 </section>
 
 
-<section class="card">
 
-<h2>🧀 Kaasadvies</h2>
+
+
+<section id="advies" class="card" style="display:none;">
+
+<h2>Stap 4 🧀 Kaasadvies</h2>
 
 <h3>⭐ Beste match</h3>
 <p>Kaasnaam</p>
-<p>Waarom deze kaas past bij de drank.</p>
+<p>
+Waarom deze kaas qua smaak, structuur en aroma goed past bij deze drank.
+</p>
 
-<h3>Alternatief 1</h3>
+
+<h3>🧀 Alternatief 1</h3>
 <p>Kaasinformatie</p>
 
-<h3>Alternatief 2</h3>
+
+<h3>🧀 Alternatief 2</h3>
 <p>Kaasinformatie</p>
+
 
 </section>
 
 
 </main>
+
 
 
 <script src="script.js"></script>
