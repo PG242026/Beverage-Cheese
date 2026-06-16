@@ -22,7 +22,7 @@ function scanEtiket() {
 
   document.getElementById("advies").innerHTML = "";
   document.getElementById("advies").style.display = "none";
-
+document.getElementById("locatie").style.display = "none";
   document.getElementById("analyseKnop").style.display = "none";
 
   document.getElementById("etiketCamera").click();
