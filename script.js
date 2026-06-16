@@ -64,7 +64,7 @@ async function analyseerEtiket() {
     },
 
    body: JSON.stringify({
-  image: etiketAfbeelding
+  image: etiketAfbeelding,
 land: document.getElementById("land")?.value || "",
   provincie: document.getElementById("provincie")?.value || "",
   plaats: document.getElementById("plaats")?.value || ""
