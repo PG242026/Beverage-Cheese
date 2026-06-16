@@ -120,4 +120,17 @@ function gebruikHuidigeLocatie() {
     }
   );
 }
+function zoekKaascombinatie() {
 
+  const land = document.getElementById("land").value;
+  const provincie = document.getElementById("provincie").value;
+  const plaats = document.getElementById("plaats").value;
+
+  document.getElementById("advies").innerHTML +=
+    "<hr><h2>🌍 Lokale kaasadvies</h2>" +
+    "<p>Ik zoek een passende kaas uit " +
+    plaats + " " + provincie + " " + land +
+    " bij deze drank.</p>";
+
+  toonAdvies();
+}
