@@ -55,10 +55,14 @@ Antwoord kort en duidelijk in het Nederlands.`
 
     const data = await response.json();
 
-    res.status(200).json({
-      resultaat: data.output_text
-    });
+    const tekst =
+  data.output_text ||
+  data.output?.[0]?.content?.[0]?.text ||
+  "Geen tekst gevonden in AI antwoord";
 
+res.status(200).json({
+  resultaat: tekst
+});
 
   } catch (error) {
 
