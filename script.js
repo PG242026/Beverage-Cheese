@@ -33,3 +33,37 @@ function toonEtiketFoto(event) {
     document.getElementById("analyseKnop").style.display = "block";
   }
 }
+async function analyseerEtiket() {
+
+  const fotoElement = document.getElementById("etiketFoto");
+
+  if (!fotoElement.src) {
+    alert("Maak eerst een foto van het etiket.");
+    return;
+  }
+
+  document.getElementById("analyseKnop").innerText =
+    "🤖 AI analyseert...";
+
+  const reactie = await fetch("/api/analyse", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      image: fotoElement.src
+    })
+  });
+
+  const data = await reactie.json();
+
+  alert(data.resultaat);
+
+  toonDrankgegevens();
+
+  document.getElementById("analyseKnop").innerText =
+    "🤖 Analyseer etiket";
+}
+
+
