@@ -19,6 +19,12 @@ function verbergDrankgegevens() {
   document.getElementById("drankgegevens").style.display = "none";
 }
 function scanEtiket() {
+
+  document.getElementById("advies").innerHTML = "";
+  document.getElementById("advies").style.display = "none";
+
+  document.getElementById("analyseKnop").style.display = "none";
+
   document.getElementById("etiketCamera").click();
 }
 
