@@ -29,17 +29,45 @@ export default async function handler(req, res) {
                 {
                   type: "input_text",
                   text:
-                  `Analyseer dit dranketiket.
+                `Analyseer dit dranketiket als professionele sommelier en kaasexpert.
 
-Geef terug:
+Bepaal:
 - soort drank
 - kleur/type
 - naam drank
 - druif of stijl
-- land
-- regio
+- land van herkomst
+- regio van herkomst
+- smaakprofiel van de drank
 
-Antwoord kort en duidelijk in het Nederlands.`
+Geef daarna kaasadvies.
+
+Regels voor kaasadvies:
+- Kies kaas op basis van de beste smaakcombinatie met de drank.
+- Gebruik de huidige locatie van de gebruiker alleen als voorkeur, niet als beperking.
+- Zoek eerst passende kazen uit de regio of het land waar de gebruiker is.
+- Als daar geen ideale combinatie is, kies betere kazen uit andere landen.
+- Kies nooit alleen op plaatsnaam.
+- Geef minimaal 3 verschillende kazen.
+
+Geef per kaas:
+- naam kaas
+- land/regio
+- waarom deze kaas goed past bij deze drank
+
+Gebruik deze indeling:
+
+🍷 Drankanalyse
+
+🧀 Beste combinatie
+
+📍 Lokale of regionale keuze
+
+🌍 Extra alternatief
+
+Antwoord duidelijk in het Nederlands.`
+
+
                 },
                 {
                   type: "input_image",
