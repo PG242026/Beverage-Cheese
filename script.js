@@ -76,7 +76,7 @@ async function analyseerEtiket() {
   "</p>";
 
 toonAdvies();
-
+toonLocatie();
 
   document.getElementById("analyseKnop").innerText =
     "🤖 Analyseer etiket";
