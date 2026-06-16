@@ -124,17 +124,38 @@ function gebruikHuidigeLocatie() {
     }
   );
 }
-function zoekKaascombinatie() {
+async function zoekKaascombinatie() {
 
   const land = document.getElementById("land").value;
   const provincie = document.getElementById("provincie").value;
   const plaats = document.getElementById("plaats").value;
 
-  document.getElementById("advies").innerHTML +=
-    "<hr><h2>🌍 Lokale kaasadvies</h2>" +
-    "<p>Ik zoek een passende kaas uit " +
-    plaats + " " + provincie + " " + land +
-    " bij deze drank.</p>";
+  document.getElementById("advies").innerHTML =
+    "<h2>🧀 Kaasadvies</h2><p>🤖 AI zoekt de beste combinaties...</p>";
+
+  const reactie = await fetch("/api/analyse", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    body: JSON.stringify({
+      image: etiketAfbeelding,
+      land: land,
+      provincie: provincie,
+      plaats: plaats,
+      kaasadvies: true
+    })
+  });
+
+  const data = await reactie.json();
+
+  document.getElementById("advies").innerHTML =
+    "<h2>🧀 Kaasadvies</h2><p>" +
+    data.resultaat.replace(/\n/g, "<br>") +
+    "</p>";
 
   toonAdvies();
 }
+ 
+
