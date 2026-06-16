@@ -22,15 +22,27 @@ function scanEtiket() {
   document.getElementById("etiketCamera").click();
 }
 
+let etiketAfbeelding = "";
+
 function toonEtiketFoto(event) {
   const foto = event.target.files[0];
 
   if (foto) {
-    const voorbeeld = document.getElementById("etiketFoto");
-    voorbeeld.src = URL.createObjectURL(foto);
-    voorbeeld.style.display = "block";
 
-    document.getElementById("analyseKnop").style.display = "block";
+    const reader = new FileReader();
+
+    reader.onload = function() {
+
+      etiketAfbeelding = reader.result;
+
+      const voorbeeld = document.getElementById("etiketFoto");
+      voorbeeld.src = etiketAfbeelding;
+      voorbeeld.style.display = "block";
+
+      document.getElementById("analyseKnop").style.display = "block";
+    };
+
+    reader.readAsDataURL(foto);
   }
 }
 async function analyseerEtiket() {
@@ -51,9 +63,9 @@ async function analyseerEtiket() {
       "Content-Type": "application/json"
     },
 
-    body: JSON.stringify({
-      image: fotoElement.src
-    })
+   body: JSON.stringify({
+  image: etiketAfbeelding
+}) 
   });
 
   const data = await reactie.json();
