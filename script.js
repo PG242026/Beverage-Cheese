@@ -136,8 +136,8 @@ async function zoekKaascombinatie() {
   const provincie = document.getElementById("provincie").value;
   const plaats = document.getElementById("plaats").value;
 
-  document.getElementById("advies").innerHTML =
-    "<h2>🧀 Kaasadvies</h2><p>🤖 AI zoekt de beste combinaties...</p>";
+  document.querySelector("button[onclick='zoekKaascombinatie()']").innerText =
+"🧀 AI zoekt kaascombinatie...";
 
   const reactie = await fetch("/api/kaas", {
     method: "POST",
@@ -163,6 +163,9 @@ async function zoekKaascombinatie() {
 
   toonAdvies();
   document.getElementById("locatie").style.display = "none";
+
+document.querySelector("button[onclick='zoekKaascombinatie()']").innerText =
+"🤖 Zoek kaascombinatie";
 }
  
 
