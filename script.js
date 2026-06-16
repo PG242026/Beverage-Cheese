@@ -90,9 +90,6 @@ aiTekst.replace(/\n/g, "<br>") +
 toonAdvies();
 toonLocatie();
 
-document.getElementById("locatie").scrollIntoView({
-  behavior: "smooth"
-});  
   document.getElementById("analyseKnop").innerText =
     "🤖 Analyseer etiket";
 }
