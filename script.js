@@ -77,7 +77,6 @@ async function analyseerEtiket() {
 
 toonAdvies();
 
-  toonDrankgegevens();
 
   document.getElementById("analyseKnop").innerText =
     "🤖 Analyseer etiket";
