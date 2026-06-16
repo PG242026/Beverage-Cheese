@@ -29,7 +29,7 @@ export default async function handler(req, res) {
                 {
                   type: "input_text",
                   text:
-                `Analyseer dit dranketiket als professionele sommelier en kaasexpert.
+  `Analyseer dit dranketiket als professionele sommelier.
 
 Bepaal:
 - soort drank
@@ -40,41 +40,11 @@ Bepaal:
 - regio van herkomst
 - smaakprofiel van de drank
 
-Geef daarna kaasadvies.
-Huidige locatie gebruiker:
-Land: ${land}
-Provincie/regio: ${provincie}
-Plaats: ${plaats}
+Antwoord duidelijk in het Nederlands.
 
-Regels voor kaasadvies:
-- Kies kaas op basis van de beste smaakcombinatie met de drank.
-- Gebruik de huidige locatie van de gebruiker alleen als voorkeur, niet als beperking.
-- De huidige locatie van de gebruiker betekent: waar de gebruiker NU is.
-- Lokale of regionale keuze moet kazen geven uit het land/regio waar de gebruiker NU is.
-- Gebruik dus niet automatisch het herkomstland van de drank als lokale keuze.
-- Als de gebruiker in Nederland is: geef Nederlandse kazen, of eventueel kazen uit nabije landen zoals België, Duitsland of Frankrijk.
-- Extra alternatief mag kazen geven uit het herkomstland van de drank of internationale klassiekers.
-- Als daar geen ideale combinatie is, kies betere kazen uit andere landen.
-- Kies nooit alleen op plaatsnaam.
-- Geef minimaal 3 verschillende kazen.
-
-Geef per kaas:
-- naam kaas
-- land/regio
-- waarom deze kaas goed past bij deze drank
-
-Gebruik deze indeling:
-
-🍷 Drankanalyse
-
-🧀 Beste combinatie
-
-📍 Lokale of regionale keuze
-
-🌍 Extra alternatief
-
-Antwoord duidelijk in het Nederlands.`
-
+Geef alleen de drankanalyse.
+Geef nog geen kaasadvies.
+Het kaasadvies wordt later gemaakt met de locatie van de gebruiker.`              
 
                 },
                 {
