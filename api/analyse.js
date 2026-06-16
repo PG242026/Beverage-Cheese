@@ -45,7 +45,11 @@ Geef daarna kaasadvies.
 Regels voor kaasadvies:
 - Kies kaas op basis van de beste smaakcombinatie met de drank.
 - Gebruik de huidige locatie van de gebruiker alleen als voorkeur, niet als beperking.
-- Zoek eerst passende kazen uit de regio of het land waar de gebruiker is.
+- De huidige locatie van de gebruiker betekent: waar de gebruiker NU is.
+- Lokale of regionale keuze moet kazen geven uit het land/regio waar de gebruiker NU is.
+- Gebruik dus niet automatisch het herkomstland van de drank als lokale keuze.
+- Als de gebruiker in Nederland is: geef Nederlandse kazen, of eventueel kazen uit nabije landen zoals België, Duitsland of Frankrijk.
+- Extra alternatief mag kazen geven uit het herkomstland van de drank of internationale klassiekers.
 - Als daar geen ideale combinatie is, kies betere kazen uit andere landen.
 - Kies nooit alleen op plaatsnaam.
 - Geef minimaal 3 verschillende kazen.
