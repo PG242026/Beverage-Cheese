@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   try {
 
-    const { image } = req.body;
+  const { image, land, provincie, plaats } = req.body;
 
     const response = await fetch(
       "https://api.openai.com/v1/responses",
@@ -41,6 +41,10 @@ Bepaal:
 - smaakprofiel van de drank
 
 Geef daarna kaasadvies.
+Huidige locatie gebruiker:
+Land: ${land}
+Provincie/regio: ${provincie}
+Plaats: ${plaats}
 
 Regels voor kaasadvies:
 - Kies kaas op basis van de beste smaakcombinatie met de drank.
