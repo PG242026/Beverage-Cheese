@@ -70,10 +70,12 @@ async function analyseerEtiket() {
 
   const data = await reactie.json();
 
-  document.getElementById("advies").innerHTML =
-  "<h2>🤖 AI Analyse</h2><p>" +
-  data.resultaat.replace(/\n/g, "<br>") +
-  "</p>";
+  const aiTekst = data.resultaat || data.advies || data.message || "Geen AI advies ontvangen.";
+
+document.getElementById("advies").innerHTML =
+"<h2>🧀 AI Analyse</h2><p>" +
+aiTekst.replace(/\n/g, "<br>") +
+"</p>";
 
 toonAdvies();
 toonLocatie();
