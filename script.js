@@ -133,7 +133,7 @@ async function zoekKaascombinatie() {
   document.getElementById("advies").innerHTML =
     "<h2>🧀 Kaasadvies</h2><p>🤖 AI zoekt de beste combinaties...</p>";
 
-  const reactie = await fetch("/api/analyse", {
+  const reactie = await fetch("/api/kaas", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
