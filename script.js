@@ -83,5 +83,41 @@ toonLocatie();
   document.getElementById("analyseKnop").innerText =
     "🤖 Analyseer etiket";
 }
+function gebruikHuidigeLocatie() {
 
+  if (!navigator.geolocation) {
+    alert("Locatie wordt niet ondersteund op dit apparaat.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async function(position) {
+
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      const reactie = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      );
+
+      const data = await reactie.json();
+
+      document.getElementById("land").value =
+        data.address.country || "";
+
+      document.getElementById("provincie").value =
+        data.address.state || data.address.region || "";
+
+      document.getElementById("plaats").value =
+        data.address.city ||
+        data.address.town ||
+        data.address.village ||
+        "";
+
+    },
+    function() {
+      alert("Locatie ophalen mislukt.");
+    }
+  );
+}
 
