@@ -162,6 +162,7 @@ async function zoekKaascombinatie() {
     "</p>";
 
   toonAdvies();
+  document.getElementById("locatie").style.display = "none";
 }
  
 
