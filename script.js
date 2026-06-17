@@ -32,11 +32,19 @@ let etiketAfbeelding = "";
 
 async function toonEtiketFoto(event) {
  let foto = event.target.files[0]; 
-if (foto && foto.name.toLowerCase().endsWith(".heic")) {
-    const jpgBlob = await heic2any({
+
+  const bestandsNaam = foto.name.toLowerCase();
+
+if (foto && (bestandsNaam.endsWith(".heic") || bestandsNaam.endsWith(".heif"))) {
+    const jpgResultaat = await heic2any({
         blob: foto,
-        toType: "image/jpeg"
+        toType: "image/jpeg",
+        quality: 0.9
     });
+
+    const jpgBlob = Array.isArray(jpgResultaat)
+        ? jpgResultaat[0]
+        : jpgResultaat;
 
     foto = new File(
         [jpgBlob],
