@@ -167,5 +167,27 @@ async function zoekKaascombinatie() {
 document.querySelector("button[onclick='zoekKaascombinatie()']").innerText =
 "🤖 Zoek kaascombinatie";
 }
- 
+function toonFotoHelp() {
+  alert(
+`📷 Foto advies
+
+Maak eerst een foto van de achterkant van het etiket.
+
+Daar staat meestal de meeste informatie:
+• soort drank
+• druif of ingrediënten
+• land en streek
+• smaakomschrijving
+• alcoholpercentage
+• producent
+
+Heeft de AI niet genoeg informatie gevonden?
+Maak dan ook een foto van de voorkant van de fles.
+
+De voorkant helpt vooral bij:
+• merknaam
+• exacte fles herkenning
+• speciale edities`
+  );
+} 
 
