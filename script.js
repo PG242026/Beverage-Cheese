@@ -44,6 +44,8 @@ function toonEtiketFoto(event) {
       const voorbeeld = document.getElementById("etiketFoto");
       voorbeeld.src = etiketAfbeelding;
       voorbeeld.style.display = "block";
+      document.querySelector("button[onclick='scanEtiket()']").innerText =
+"📷 Maak nieuwe foto van achteretiket";
 
       document.getElementById("analyseKnop").style.display = "block";
     };
