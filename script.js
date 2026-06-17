@@ -30,9 +30,15 @@ document.getElementById("locatie").style.display = "none";
 
 let etiketAfbeelding = "";
 
-function toonEtiketFoto(event) {
-  const foto = event.target.files[0];
-
+async function toonEtiketFoto(event) {
+ let foto = event.target.files[0]; 
+if (foto && foto.name.toLowerCase().endsWith(".heic")) {
+    foto = await heic2any({
+        blob: foto,
+        toType: "image/jpeg"
+    });
+}
+  
   if (foto) {
 
     const reader = new FileReader();
