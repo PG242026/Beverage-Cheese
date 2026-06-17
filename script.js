@@ -181,7 +181,8 @@ async function zoekKaascombinatie() {
   document.getElementById("advies").innerHTML =
     "<h2>🧀 Kaasadvies</h2><p>" +
     data.resultaat.replace(/\n/g, "<br>") +
-    "</p>";
+    "</p>" +
+"<button onclick='nieuweFles()'>🍾 Nieuwe fles analyseren</button>";
 
   toonAdvies();
   document.getElementById("locatie").style.display = "none";
