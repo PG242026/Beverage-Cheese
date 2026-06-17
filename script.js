@@ -199,5 +199,17 @@ function toonFotoHelp() {
   }
 }
 
+function nieuweFles() {
+  etiketAfbeelding = "";
+
+  document.getElementById("etiketFoto").style.display = "none";
+  document.getElementById("advies").style.display = "none";
+  document.getElementById("locatie").style.display = "none";
+  document.getElementById("analyseKnop").style.display = "none";
+
+  document.querySelector("button[onclick='scanEtiket()']").innerText =
+  "📷 Stap 1. Maak foto van achteretiket van de fles";
+}
+
 
 
