@@ -39,12 +39,26 @@ Provincie/regio: ${provincie}
 Plaats: ${plaats}
 
 Regels:
-- Kies de beste kaas op smaakcombinatie.
+- Kies de beste kaas op basis van smaakcombinatie.
+- Analyseer eerst de stijl van de drank: zuur, zoet, droog, body, aroma's en intensiteit.
 - Gebruik locatie als voorkeur, niet als beperking.
 - Lokale keuze = waar gebruiker NU is.
-- Geef ook internationale alternatieven.
 - Geef minimaal 3 kazen.
-- Leg uit waarom de kaas past.
+
+Belangrijk bij de keuzes:
+- De 3 kazen moeten verschillende stijlen hebben.
+- Gebruik geen vaste standaard alternatieven.
+- Adviseer Manchego alleen wanneer deze echt beter past dan andere kazen.
+- Varieer tussen:
+  zachte kazen,
+  harde gerijpte kazen,
+  blauwaderkazen,
+  geitenkazen,
+  gewassen korstkazen,
+  lokale specialiteiten.
+- Kijk naar vet, zout, zuur, romigheid en structuur van de kaas.
+- Leg per kaas uit waarom deze specifiek bij deze drank past.
+- Geef ook een kort verhaal over de drank alsof een sommelier dit tijdens een proeverij vertelt.
 
 Gebruik:
 
