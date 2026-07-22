@@ -1,0 +1,11 @@
+{
+  "name": "beverage-cheese",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "openai": "^6.48.0"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^5.3.0"
+  }
+}
