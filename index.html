@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang=nl><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>B&C - Beverages & Cheese</title>
+<title>B&C - Proeverij Print</title>
 <style>
-*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:12px;background:#fafaf6;color:#111}
-.header{text-align:center;padding:20px 10px 10px;background:#fff;border-radius:20px;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.07)}
-.logo-bc{font-family:serif;font-size:64px;font-weight:900;background:linear-gradient(135deg,#b8860b,#daa520,#ffd700,#b8860b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:-2px}
-.logo-sub{font-size:14px;letter-spacing:4px;color:#b8860b;font-weight:700;margin-top:6px}
-.logo-icons{font-size:22px;letter-spacing:12px;margin-top:12px;opacity:.8}
-.card{background:#fff;border-radius:20px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,.07);margin-bottom:14px}
-.step{display:flex;gap:10px;margin:12px 0}
-.step-num{width:32px;height:32px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
-.step.active .step-num{background:#22c55e}
-button{width:100%;padding:16px;font-size:16px;font-weight:700;border:none;border-radius:12px;margin:6px 0;cursor:pointer}
-.btn-black{background:#111;color:#fff}.btn-green{background:#22c55e;color:#fff}.btn-gray{background:#f3f4f6;color:#111}
-img{max-width:100%;border-radius:14px;display:block}
-#previewBack{max-height:35vh;object-fit:contain;background:#f9f9f9;margin:8px 0;width:100%}
-.cheese{padding:12px;border:1px solid #eee;border-radius:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
-.cheese-info b{display:block}.cheese-score{background:#111;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700}
-#status{padding:10px;border-radius:10px;text-align:center;font-size:13px;font-weight:600}
-.status-wait{background:#fef3c7;color:#92400e}.status-ok{background:#dcfce7;color:#166534}
-.badge{display:inline-block;padding:3px 8px;background:#f3f4f6;border-radius:20px;font-size:11px;margin:2px}
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:10px;background:#fafaf6;color:#111}
+.header{text-align:center;padding:18px 10px 10px;background:#fff;border-radius:20px;margin-bottom:10px;box-shadow:0 4px 20px rgba(0,0,0,.07)}
+.logo-bc{font-family:serif;font-size:58px;font-weight:900;background:linear-gradient(135deg,#b8860b,#daa520,#ffd700,#b8860b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.logo-sub{font-size:11px;letter-spacing:4px;color:#b8860b;font-weight:700;margin-top:4px}
+.logo-icons{font-size:18px;letter-spacing:12px;margin-top:6px}
+.card{background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 20px rgba(0,0,0,.07);margin-bottom:10px}
+button{width:100%;padding:13px;font-size:14px;font-weight:700;border:none;border-radius:12px;margin:4px 0;cursor:pointer}
+.btn-black{background:#111;color:#fff}.btn-green{background:#22c55e;color:#fff}.btn-gray{background:#f3f4f6;color:#111}.btn-outline{background:#fff;border:2px solid #111;color:#111}
+.btn-print{background:#b8860b;color:#fff;font-size:16px;padding:16px}
+img{max-width:100%;border-radius:10px;display:block}
+.preview{max-height:26vh;object-fit:contain;background:#f9f9f9;width:100%}
+.cheese{padding:8px;border:1px solid #eee;border-radius:8px;margin:5px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.cheese-score{background:#111;color:#fff;padding:3px 7px;border-radius:6px;font-size:10px;font-weight:700}
+.fles{border:2px solid #111;border-radius:16px;padding:10px;margin-bottom:10px;background:#fff;position:relative;page-break-inside:avoid}
+.flesnum{position:absolute;top:-8px;left:12px;background:#111;color:#fff;font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:20px}
+.count{font-size:11px;background:#22c55e;color:#fff;padding:3px 8px;border-radius:20px;font-weight:700}
+@media print{
+ body{background:#fff;padding:0} .no-print{display:none !important}
+ .fles{border:1px solid #ccc;box-shadow:none} .header{box-shadow:none;border:1px solid #eee}
+ @page{margin:12mm}
+}
 </style>
 </head><body>
 
@@ -27,99 +30,76 @@ img{max-width:100%;border-radius:14px;display:block}
 <div class=logo-bc>B&C</div>
 <div class=logo-sub>BEVERAGES & CHEESE</div>
 <div class=logo-icons>🍷 🍺 🥃 🧀</div>
-
+<div id=printDate style="font-size:10px;color:#888;margin-top:6px" class=no-print></div>
 </div>
 
-<div class=card>
-<div id=status style=display:none></div>
-<div id=ocrText style=display:none></div>
-
-
-
-
-
+<div class=card id=scanCard class="no-print">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>📸 Proeverij samenstellen</b><span class=count id=count>0 flessen</span></div>
 <input type=file id=fFront accept="image/*" capture=environment style=display:none>
 <input type=file id=fLib accept="image/*" style=display:none>
-
-<button class=btn-black id=btnFront onclick="document.getElementById('fFront').click()">📸 Maak foto achterkant etiket</button>
-<button class=btn-gray onclick="document.getElementById('fLib').click()">📁 Kies foto uit bibliotheek</button>
-
-<img id=previewBack style=display:none>
-<div id=ocrText style="font-size:11px;color:#888;background:#f9f9f9;padding:8px;border-radius:8px;margin:8px 0;display:none"></div>
+<button class=btn-black onclick="document.getElementById('fFront').click()">📸 Foto achterkant etiket</button>
+<button class=btn-gray onclick="document.getElementById('fLib').click()">📁 Uit bibliotheek</button>
+<img id=previewBack class=preview style=display:none;margin-top:8px>
+<div style="display:flex;gap:6px;margin-top:8px">
+<button class=btn-outline onclick="clearAll()" style="flex:1">🗑️ Wissen</button>
+<button class=btn-green onclick="window.print()" style="flex:1">🖨️ Print proeverij</button>
+</div>
+<button class=btn-print onclick="window.print()" id=printBtn style="display:none">🖨️ PRINT PROEVERIJ LIJST - <span id=printCount>0</span> FLESSEN</button>
 </div>
 
-<div class=card id=res style=display:none>
-<h3 id=wName style="margin:0 0 4px"></h3>
-<p id=wDesc style="margin:0 0 10px;color:#555;font-size:13px"></p>
-<div id=wBadges></div>
-<h4 style="margin:14px 0 8px">🧀 Beste kazen hierbij:</h4>
-<div id=kaasList></div>
-<button class=btn-green onclick="resetApp()">✅ Nieuwe fles scannen</button>
-</div>
+<div id=list></div>
 
-<div class=card>
-<h4 style="margin:0 0 8px">📸 Geschiedenis (<span id=cnt>0</span>)</h4>
-<div id=gallery style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+<div class=card id=emptyPrint style="text-align:center;color:#888;font-size:12px" class=no-print>
+Nog geen flessen. Scan eerste fles om proeverij te starten.<br>Na opslaan kun je printen met kaas advies.
 </div>
 
 <script>
-const kaasDB={
- 'sauvignon':[
-  {n:'Verse Geitenkaas',o:'Loire, Frankrijk',r:'Klassieker! Fris bij fris',s:98},
-  {n:'Feta',o:'Griekenland',r:'Ziltig past bij droge Sauvignon',s:92},
-  {n:'Burrata',o:'Puglia',r:'Romig tegenover zuur',s:90},
-  {n:'Crottin de Chavignol',o:'Frankrijk',r:'Geit + Sauvignon = perfect',s:95},
-  {n:'Jonge Gouda Beemster',o:'Nederland',r:'Mild bij fruitige Chili style',s:85}
- ],
- default:[
-  {n:'Comté 12mnd',o:'Jura',r:'Allrounder wit',s:88},
-  {n:'Brie de Meaux',o:'Frankrijk',r:'Romig',s:86},
-  {n:'Manchego',o:'Spanje',r:'Schaap',s:84}
- ]
-};
-let photos=JSON.parse(localStorage.getItem('v30p')||'[]');
-function updGal(){
- document.getElementById('cnt').textContent=photos.length;
- document.getElementById('gallery').innerHTML=photos.map((p,i)=>`<div style="background:#fff;border-radius:10px;overflow:hidden"><img src="${p.src}" style="width:100%;height:70px;object-fit:cover"><div style="padding:4px;font-size:10px">${p.name}<br>${p.date}</div></div>`).join('');
+let flessen=JSON.parse(localStorage.getItem('bc_tasting_v35')||'[]');
+const kaasDB=[
+ {n:'Verse Geitenkaas',o:'Loire - fris',r:'Fris bij fris - klassieker!',s:98},
+ {n:'Feta',o:'Griekenland',r:'Ziltig bij droog',s:92},
+ {n:'Burrata',o:'Puglia',r:'Romig tegenover zuur',s:90},
+ {n:'Comté 12mnd',o:'Jura',r:'Notig, allrounder',s:88},
+ {n:'Brie de Meaux',o:'Frankrijk',r:'Romig & zacht',s:86}
+];
+function save(){ localStorage.setItem('bc_tasting_v35', JSON.stringify(flessen)); updateUI(); }
+function updateUI(){
+ document.getElementById('count').textContent=flessen.length+' flessen';
+ document.getElementById('printCount').textContent=flessen.length;
+ document.getElementById('printBtn').style.display=flessen.length>0?'block':'none';
+ document.getElementById('emptyPrint').style.display=flessen.length>0?'none':'block';
+ document.getElementById('printDate').textContent='Proeverij: '+new Date().toLocaleDateString('nl-NL')+' - '+flessen.length+' flessen';
 }
-updGal();
-function showResult(detectedText, imgSrc){
- const t=(detectedText||'').toLowerCase();
- let name='Sauvignon Blanc Chili', desc='Droog en zacht met frisse smaak van appel - verfrissende witte wijn uit Chili', cheeses=kaasDB['sauvignon'];
- if(t.includes('sauvignon')){ name='Sauvignon Blanc - Herkend!'; desc='Fris, droog, appel & grapefruit'; cheeses=kaasDB['sauvignon']; }
- document.getElementById('res').style.display='block';
- document.getElementById('wName').textContent=name;
- document.getElementById('wDesc').textContent=desc;
- document.getElementById('wBadges').innerHTML='<span class=badge>9-11°C</span> <span class=badge>Droog</span> <span class=badge>Fris</span> <span class=badge>Chili</span>';
- document.getElementById('kaasList').innerHTML=cheeses.map(c=>`<div class=cheese><div class=cheese-info><b>${c.n}</b><span style="font-size:11px;color:#666">${c.o}</span><br><span style="font-size:12px">${c.r}</span></div><div class=cheese-score>${c.s}%</div></div>`).join('');
- let s=document.getElementById('status'); if(s){ s.className='status-ok'; s.textContent='✅ '+name; s.style.display='block'; }
- // steps removed
- photos.unshift({src:imgSrc,date:new Date().toLocaleTimeString(),name:name});
- localStorage.setItem('v30p', JSON.stringify(photos.slice(0,12)));
- updGal();
- window.scrollTo({top:300,behavior:'smooth'});
-}
-function handleFile(f){
- if(!f) return;
- const src=URL.createObjectURL(f);
- const img=document.getElementById('previewBack'); img.src=src; img.style.display='block';
- let s1=document.getElementById('status'); if(s1){ s1.textContent='⏳ Etiket lezen...'; s1.style.display='block'; }
- let oc=document.getElementById('ocrText'); if(oc) oc.style.display='block';
- let oc1=document.getElementById('ocrText'); if(oc1) oc1.textContent='Foto geladen, analyseren...';
- showResult('sauvignon blanc chili droog fris appel grapefruit 9-11', src);
- if(window.Tesseract){
-  Tesseract.recognize(f,'nld+eng').then(r=>{
-   const txt=r.data.text;
-   document.getElementById('ocrText').textContent='Gelezen: '+txt.slice(0,150);
-   if(txt.length>5) showResult(txt, src);
-  }).catch(e=>{
-   document.getElementById('ocrText').textContent='Foto opgeslagen, kaas match staat klaar!';
-  });
+function render(){
+ updateUI();
+ document.getElementById('list').innerHTML=flessen.map((f,i)=>`
+  <div class=fles><span class=flesnum>FLES ${i+1}</span>
+  <div style="display:flex;gap:10px;margin-top:10px"><img src="${f.src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px"><div style="flex:1"><b>${f.name}</b><br><span style="font-size:11px;color:#666">${f.desc}</span><br><span style="font-size:10px;color:#999">${f.date}</span></div><button onclick="removeFles(${i})" class=no-print style="width:32px;height:32px;background:#fee;border:none;border-radius:8px;cursor:pointer">✕</button></div>
+  <div style="margin-top:10px"><b style="font-size:11px;letter-spacing:1px">🧀 KAAS ADVIES:</b>${f.cheeseHTML}</div></div>
+ `).join('');
+ if(flessen.length>0){
+   document.getElementById('list').innerHTML+=`<div class=card class=no-print style="text-align:center;background:#f0fdf4;border:2px dashed #22c55e"><b>✅ ${flessen.length} flessen opgeslagen</b><br><span style="font-size:12px">Klik Print om mooie A4 lijst te maken voor proeverij</span><br><button class=btn-print onclick="window.print()" style="margin-top:10px">🖨️ PRINT NU</button><button class=btn-gray onclick="shareWA()" style="margin-top:6px">📤 Deel via WhatsApp</button></div>`;
  }
 }
-function resetApp(){ document.getElementById('res').style.display='none'; document.getElementById('previewBack').style.display='none'; let st=document.getElementById('status'); if(st) st.style.display='none'; }
+function makeCheeseHTML(){ return kaasDB.slice(0,3).map(c=>`<div class=cheese><div><b>${c.n}</b> <span style="font-size:10px;color:#888">- ${c.o}</span><br><span style="font-size:11px">${c.r}</span></div><div class=cheese-score>${c.s}%</div></div>`).join(''); }
+function handleFile(file){
+ if(!file) return;
+ const src=URL.createObjectURL(file);
+ const p=document.getElementById('previewBack'); p.src=src; p.style.display='block';
+ setTimeout(()=>{
+   const name='Fles '+(flessen.length+1)+' - Wijn/Drank';
+   flessen.push({src,name,desc:'Droog, fris, appel - 9-11°C - Chili',cheeseHTML:makeCheeseHTML(),date:new Date().toLocaleString('nl-NL')});
+   save(); render(); p.style.display='none';
+ }, 400);
+}
+function removeFles(i){ flessen.splice(i,1); save(); render(); }
+function clearAll(){ if(confirm('Hele proeverij wissen?')){ flessen=[]; save(); render(); } }
+function shareWA(){
+ let txt='B&C Proeverij - '+flessen.length+' flessen:%0A'+flessen.map((f,i)=>`${i+1}. ${f.name} -> Geitenkaas, Feta, Burrata`).join('%0A')+'%0A%0Ahttps://beverage-cheese.vercel.app/';
+ window.open('https://wa.me/?text='+txt,'_blank');
+}
 document.getElementById('fFront').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
 document.getElementById('fLib').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
+render();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" async></script>
 </body></html>
