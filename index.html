@@ -15,55 +15,108 @@ img.preview{width:100%;max-height:420px;object-fit:contain;border-radius:18px;ba
 .badge{display:inline-block;background:#111;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px}
 .cheese{border:1px solid #eee;border-radius:16px;padding:12px;margin-top:10px}
 h1{font-family:Fraunces,serif;margin:8px 0}
+.loc{font-size:12px;color:#888;margin-top:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
-<div style="display:flex;justify-content:space-between;align-items:center"><h1>Drank & Kaas Pairing</h1><span class="badge"></span></div>
-<p style="color:#666">Maak of kies een foto van je dranketiket voor kaasmatch</p>
+<div style="display:flex;justify-content:space-between;align-items:center"><h1>Drank & Kaas</h1><span class="badge" id="locBadge">📍 Locatie bepalen...</span></div>
+<p style="color:#666" id="locText">Kazen op basis van waar je bent</p>
 
 <div class="card" id="uploadCard">
 <input type="file" id="file1" accept="image/*" style="display:none">
 <input type="file" id="file2" accept="image/*" capture="environment" style="display:none">
 <button class="btn" onclick="document.getElementById('file1').click()">📁 Kies foto</button>
 <button class="btn btn2" onclick="document.getElementById('file2').click()">📸 Maak foto</button>
+<p class="loc" id="gpsInfo">GPS wordt opgehaald...</p>
 </div>
 
 <div class="card" id="resultCard" style="display:none">
 <img id="previewImg" class="preview">
 <h2 id="drinkName" style="font-family:Fraunces;margin:16px 0 8px"></h2>
 <p id="drinkDesc" style="color:#666;font-size:14px"></p>
-<h3 style="margin-top:20px">6 perfecte kazen:</h3>
+<h3 id="cheeseTitle" style="margin-top:20px">Kazen uit jouw regio:</h3>
 <div id="cheeseList"></div>
 <button class="btn btn2" onclick="resetApp()">Opnieuw</button>
-<p style="font-size:12px;color:#999;margin-top:12px">Tip: lang indrukken op foto om te bewaren</p>
 </div>
 </div>
 
 <script>
 const drinks=[
-{name:"Riesling - Fris & Fruitig",desc:"Frisse zuren, citrus - perfect bij romige kazen"},
-{name:"Chardonnay - Rijk & Romig",desc:"Volle witte wijn, houtgerijpt - matcht met harde kazen"},
-{name:"Witbier - Zacht & Kruidig",desc:"Kruidig, licht zoetje - heerlijk bij jonge kazen"},
-{name:"Cabernet Sauvignon - Krachtig",desc:"Tanninerijk rood - vraagt om pittige kaas"},
-{name:"Port - Zoet & Warm",desc:"Zoet versterkt blauwschimmel"}
+{name:"Riesling - Fris & Fruitig",desc:"Frisse zuren, citrus"},
+{name:"Chardonnay - Rijk & Romig",desc:"Volle witte wijn, houtgerijpt"},
+{name:"Witbier - Zacht & Kruidig",desc:"Kruidig, licht zoetje"},
+{name:"Cabernet Sauvignon - Krachtig",desc:"Tanninerijk rood"},
+{name:"Port - Zoet & Warm",desc:"Zoet versterkt blauw"}
 ];
-const cheeses=[
-{n:"Goudse Oude 18m (NL)",o:"NL - koe",r:"Karamel & kristal, perfect bij friszuur wit"},
-{n:"Boerenkaas Stolwijk (NL)",o:"NL - koe",r:"Vol & romig, ambachtelijk"},
-{n:"Old Amsterdam (NL)",o:"NL - koe",r:"Zoet & pittig, matcht bij rood"},
-{n:"Comté 18 mois (FR)",o:"FR - koe",r:"Notig & complex, top bij Riesling"},
-{n:"Gruyère Alpage (CH)",o:"CH - koe",r:"Zoet-hartig uit de Alpen"},
-{n:"Brie de Meaux (FR)",o:"FR - koe",r:"Romig & bloemig"},
-{n:"Manchego Curado 12m (ES)",o:"ES - schaap",r:"Pittig & stevig bij krachtig rood"},
-{n:"Parmigiano Reggiano 24m (IT)",o:"IT - koe",r:"Umami bom"},
-{n:"Stilton Blue (UK)",o:"UK - blauw",r:"Zout & krachtig bij Port"},
-{n:"Roquefort Papillon (FR)",o:"FR - blauw schaap",r:"Zout & scherp"},
-{n:"Allgäuer Emmentaler (DE)",o:"DE - koe",r:"Nootachtig, mild - om de hoek"},
-{n:"Limburger (BE/DE)",o:"BE/DE - koe",r:"Pittig & smeuïg, streekkaas"},
-{n:"Appenzeller Surchoix (CH)",o:"CH - koe",r:"Kruidig met kruidenpekel"},
-{n:"Taleggio DOP (IT)",o:"IT - koe",r:"Zacht & funky, smelt mooi"}
-];
+
+const cheeseDB={
+NL:[
+{n:"Goudse Oude 18m",o:"Gelderland/ZH - koe",r:"Karamel & kristal, lokaal gerijpt"},
+{n:"Boerenkaas Stolwijk",o:"Zuid-Holland - koe",r:"Ambachtelijk, vol & romig"},
+{n:"Old Amsterdam",o:"Noord-Holland - koe",r:"Zoet & pittig, overal verkrijgbaar"},
+{n:"Limburger",o:"Limburg - koe",r:"Streek, smeuïg & pittig - grens"},
+{n:"Maasdam",o:"NL - koe",r:"Notig & zacht, gatenkaas"},
+{n:"Geitenkaas Ede",o:"Gelderland - geit",r:"Fris & lokaal, Veluwe"},
+{n:"Comté 18 mois",o:"FR - ook te koop hier",r:"Notig, bij Kaashandel Duiven"},
+{n:"Allgäuer Emmentaler",o:"DE - ook te koop hier",r:"Duits, mild - supermarkt"}
+],
+DE:[
+{n:"Allgäuer Emmentaler",o:"Allgäu - koe",r:"Duits icoon, nootachtig"},
+{n:"Tilsiter",o:"Oost-Pruisen/DE - koe",r:"Pittig & kruidig"},
+{n:"Limburger",o:"Limburg/DE - koe",r:"Streek, smeuïg"},
+{n:"Butterkäse",o:"DE - koe",r:"Zacht & boterig"},
+{n:"Goudse Oude 18m",o:"NL - ook hier verkrijgbaar",r:"Over de grens goed te krijgen"},
+{n:"Old Amsterdam",o:"NL - ook hier",r:"Nederlandse klassieker in DE"},
+{n:"Comté 18 mois",o:"FR - ook hier",r:"Frans, in Duitse kaaswinkel"},
+{n:"Appenzeller",o:"CH - ook hier",r:"Zwitsers, kruidig"}
+],
+BE:[
+{n:"Herve",o:"Luik - koe",r:"Belgisch erfgoed, sterk"},
+{n:"Chimay à la Bière",o:"Chimay - koe",r:"Met trappistenbier gewassen"},
+{n:"Brugge Oud",o:"West-Vlaanderen - koe",r:"Rijk & karamel"},
+{n:"Passendale",o:"West-Vlaanderen - koe",r:"Zacht & romig"},
+{n:"Goudse Oude",o:"NL - ook hier",r:"Ook in BE volop verkrijgbaar"},
+{n:"Comté",o:"FR - ook hier",r:"Frans in Belgische winkels"}
+],
+DEFAULT:[
+{n:"Comté 18 mois (FR)",o:"FR",r:"Notig & complex"},
+{n:"Gruyère Alpage (CH)",o:"CH",r:"Zoet-hartig"},
+{n:"Goudse Oude 18m (NL)",o:"NL",r:"Karameltonen"},
+{n:"Manchego Curado (ES)",o:"ES",r:"Schaap, pittig"},
+{n:"Parmigiano Reggiano 24m (IT)",o:"IT",r:"Umami"},
+{n:"Stilton Blue (UK)",o:"UK",r:"Blauw, zout"}
+]
+};
+
+let currentRegion='NL';
+let currentCheeses=cheeseDB.NL;
+
+function detectRegion(lat,lon){
+// Duiven ~51.95,6.02
+if(lat>=50.5 && lat<=54 && lon>=3 && lon<=7.5){currentRegion='NL';}
+else if(lat>=47 && lat<=55.5 && lon>=5.5 && lon<=15.5){currentRegion='DE';}
+else if(lat>=49.4 && lat<=51.6 && lon>=2.5 && lon<=6.5){currentRegion='BE';}
+else if(lat>=41 && lat<=51 && lon>= -5 && lon<=9.5){currentRegion='DEFAULT';}
+else {currentRegion='DEFAULT';}
+
+currentCheeses=cheeseDB[currentRegion] || cheeseDB.DEFAULT;
+document.getElementById('locBadge').textContent = currentRegion==='NL'?'📍 Gelderland, NL': currentRegion==='DE'?'📍 NRW, DE': currentRegion==='BE'?'📍 BE': '📍 Europa';
+document.getElementById('locText').textContent = currentRegion==='NL'?'Kazen uit jouw regio: Gelderland & NL + wat er hier ook te krijgen is': currentRegion==='DE'?'Kazen uit jouw regio: Duitsland + grens NL': 'Kazen uit jouw regio + lokaal verkrijgbaar';
+document.getElementById('gpsInfo').textContent = `GPS: ${lat.toFixed(3)}, ${lon.toFixed(3)} → Regio ${currentRegion} - ${currentCheeses.length} kazen geladen`;
+}
+
+function initGPS(){
+if(!navigator.geolocation){document.getElementById('gpsInfo').textContent='Geen GPS, gebruik standaard NL'; return;}
+navigator.geolocation.getCurrentPosition(pos=>{
+detectRegion(pos.coords.latitude,pos.coords.longitude);
+},err=>{
+document.getElementById('gpsInfo').textContent='Locatie uit, gebruik NL (Duiven) - sta locatie toe voor regio kaas';
+document.getElementById('locBadge').textContent='📍 Duiven, NL (default)';
+currentRegion='NL'; currentCheeses=cheeseDB.NL;
+},{enableHighAccuracy:false,timeout:5000});
+}
+initGPS();
 
 function handleFile(f){
  if(!f) return;
@@ -75,7 +128,8 @@ function handleFile(f){
   const d=drinks[Math.floor(Math.random()*drinks.length)];
   document.getElementById('drinkName').textContent=d.name;
   document.getElementById('drinkDesc').textContent=d.desc;
-  const shuffled=[...cheeses].sort(()=>0.5-Math.random()).slice(0,6);
+  document.getElementById('cheeseTitle').textContent = `Kazen uit ${currentRegion} + hier verkrijgbaar:`;
+  const shuffled=[...currentCheeses].sort(()=>0.5-Math.random()).slice(0,6);
   document.getElementById('cheeseList').innerHTML=shuffled.map(c=>`<div class="cheese"><b>${c.n}</b><br><span style="font-size:12px;color:#888">${c.o}</span><br><span style="font-size:13px">${c.r}</span></div>`).join('');
   window.scrollTo(0,0);
  };
