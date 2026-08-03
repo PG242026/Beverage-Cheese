@@ -1,45 +1,27 @@
-<!DOCTYPE html>
-<html lang=nl><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>Wijn NOOD FIX</title>
-<style>body{font-family:sans-serif;padding:20px;text-align:center}button{padding:20px 30px;font-size:20px;background:#111;color:#fff;border:none;border-radius:15px;margin:10px;width:90%}img{max-width:90%;margin:20px auto;display:block;border-radius:15px;border:3px solid #111}#msg{padding:15px;background:#e8f5e9;border-radius:10px;margin:10px}</style>
-</head><body>
-<h1>📸 Wijn NOOD FIX v26</h1>
-<p>Foto wordt DIRECT getoond en opgeslagen</p>
-<input type=file id=file1 accept="image/*" capture=environment style=display:none>
-<button onclick="document.getElementById('file1').click()">📸 MAAK FOTO - DIRECT</button>
-<button onclick="document.getElementById('file2').click()" style="background:#555">📁 KIES FOTO</button>
-<input type=file id=file2 accept="image/*" style=display:none>
-<div id=msg>Wachten op foto...</div>
+<!DOCTYPE html><html><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>v27</title>
+<style>body{font-family:sans-serif;padding:15px}button{width:100%;padding:18px;font-size:18px;font-weight:700;border:none;border-radius:14px;margin:8px 0;background:#111;color:#fff}img{max-width:100%;border-radius:14px}#status{padding:12px;background:#e8f5e9;border-radius:10px;text-align:center}</style></head><body>
+<h2>🍷 v27 - Blijft in scherm</h2>
+<div id=status>Klaar</div>
+<input type=file id=f1 accept="image/*" capture=environment style=display:none>
+<input type=file id=f2 accept="image/*" style=display:none>
+<button onclick="document.getElementById('f1').click()">📸 MAAK FOTO</button>
+<button onclick="document.getElementById('f2').click()" style="background:#eee;color:#111">📁 Bibliotheek</button>
 <img id=preview style=display:none>
 <div id=gallery></div>
 <script>
-let count=0;
+let photos=[]; let cur='';
+try{photos=JSON.parse(localStorage.getItem('v27p')||'[]')}catch(e){}
+function upd(){document.getElementById('gallery').innerHTML=photos.map(p=>'<div><img src="'+p.src+'" style="height:80px"> '+p.date+'</div>').join('');}
+upd();
 function handle(f){
- if(!f){ document.getElementById('msg').textContent='Geen foto!'; return; }
- const src=URL.createObjectURL(f);
- const img=document.getElementById('preview');
- img.src=src; img.style.display='block';
- document.getElementById('msg').innerHTML='✅ FOTO GELADEN!<br>Opslaan naar Downloads...';
- // Direct download
- const a=document.createElement('a');
- a.href=src; a.download='WIJN-'+Date.now()+'.jpg';
- document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),500);
- count++;
- document.getElementById('msg').innerHTML='✅ OPgeslagen! ('+count+')<br>📁 Check Downloads map<br>Foto staat hieronder:';
- // Add to gallery
- const gal=document.getElementById('gallery');
- const div=document.createElement('div');
- div.innerHTML='<hr><img src="'+src+'" style="width:150px"><br><a href="'+src+'" download="wijn-'+Date.now()+'.jpg">⬇️ Download deze foto</a> - '+new Date().toLocaleTimeString();
- gal.prepend(div);
- // Save to localStorage
- try{
-  let h=JSON.parse(localStorage.getItem('noodFotos')||'[]');
-  h.unshift({id:Date.now(),src:src,date:new Date().toLocaleString()});
-  if(h.length>20) h=h.slice(0,20);
-  localStorage.setItem('noodFotos',JSON.stringify(h.slice(0,3)));
- }catch(e){}
+ if(!f) return;
+ cur=URL.createObjectURL(f);
+ const im=document.getElementById('preview'); im.src=cur; im.style.display='block';
+ document.getElementById('status').textContent='✅ FOTO HIERONDER - NIET WEG!';
+ photos.unshift({src:cur,date:new Date().toLocaleTimeString()});
+ try{localStorage.setItem('v27p', JSON.stringify(photos.slice(0,5)))}catch(e){}
+ upd();
 }
-document.getElementById('file1').addEventListener('change',e=>{handle(e.target.files[0]); e.target.value='';});
-document.getElementById('file2').addEventListener('change',e=>{handle(e.target.files[0]); e.target.value='';});
-</script>
-</body></html>
+document.getElementById('f1').addEventListener('change',e=>{handle(e.target.files[0]); e.target.value='';});
+document.getElementById('f2').addEventListener('change',e=>{handle(e.target.files[0]); e.target.value='';});
+</script></body></html>
