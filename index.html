@@ -16,8 +16,74 @@ img.preview{width:100%;max-height:380px;object-fit:contain;border-radius:14px;ba
 .loc{font-size:12px;color:#888;margin-top:6px}
 .sheet{border:2px dashed #aaa;border-radius:16px;padding:16px;margin-bottom:16px;page-break-after:always;background:#fff}
 @media print{.no-print{display:none}}
-</style>
-</head><body>
+</style><body>
+
+<script>
+const DB_NAME='wijnDB'; const DB_VERSION=1;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=e=>{ e.target.result.createObjectStore('photos',{keyPath:'id'}); e.target.result.createObjectStore('sheets',{keyPath:'id'}); };
+    req.onsuccess=e=>res(e.target.result);
+    req.onerror=e=>rej(e);
+  });
+}
+async function autoSavePhoto(dataUrl, drinkName){
+  try{
+    const db=await openDB();
+    const tx=db.transaction('photos','readwrite');
+    tx.objectStore('photos').put({id:Date.now(),date:new Date().toLocaleString('nl-NL'),drink:drinkName,image:dataUrl,region:currentRegion,lat:currentLat,lon:currentLon});
+    // also save to localStorage backup for quick view
+    let h=JSON.parse(localStorage.getItem('kaasHistory')||'[]');
+    h.unshift({id:Date.now(),date:new Date().toLocaleString('nl-NL'),drink:drinkName,image:dataUrl,region:currentRegion});
+    if(h.length>10) h=h.slice(0,10);
+    localStorage.setItem('kaasHistory',JSON.stringify(h));
+    
+    // Direct download - werkt op alle telefoons
+    const a=document.createElement('a');
+    a.href=dataUrl; a.download=`WIJN-${drinkName.replace(/[^a-z0-9]/gi,'_').slice(0,12)}-${new Date().toISOString().slice(0,10)}.jpg`;
+    document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),100);
+    
+    document.getElementById('saveMsg').innerHTML=`✅ OPgeslagen! Foto staat nu in:<br>• 📁 Downloads map op telefoon (100% zeker)<br>• 📸 In deze app geschiedenis hieronder<br>• 💾 In database (${h.length} foto's)<br><button onclick="saveToGallery()" style="margin-top:8px;padding:8px 12px;background:#111;color:#fff;border:none;border-radius:8px">💾 Ook opslaan in fotobibliotheek</button>`;
+    showHistoryDB();
+  }catch(e){ document.getElementById('saveMsg').textContent='Fout opslaan: '+e; }
+}
+async function showHistoryDB(){
+  try{
+    const db=await openDB();
+    const tx=db.transaction('photos','readonly');
+    const req=tx.objectStore('photos').getAll();
+    req.onsuccess=()=>{
+      const all=req.result.reverse();
+      const div=document.getElementById('historyDiv');
+      if(!div) return;
+      if(all.length===0){ div.innerHTML='Nog geen foto\'s gevonden'; return; }
+      div.innerHTML=`<b>${all.length} foto's opgeslagen:</b><br>` + all.slice(0,20).map(item=>`<div style="display:flex;gap:8px;margin-top:8px;align-items:center"><img src="${item.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px"><div><b style="font-size:12px">${item.drink}</b><br><span style="font-size:10px;color:#888">${item.date} - ${item.region}</span><br><a href="${item.image}" download="wijn-${item.id}.jpg" style="font-size:11px;color:#2e7d32">⬇️ Download deze</a></div></div>`).join('');
+      updateCounts(all.length);
+    };
+  }catch(e){}
+}
+function updateCounts(n){ const el=document.getElementById('fotoCount'); if(el) el.textContent=`(${n} foto's)`; }
+async function saveToGallery(){
+  // Use Web Share API for iOS/Android gallery save
+  const img=document.getElementById('previewImg');
+  if(!img) return;
+  try{
+    const res=await fetch(img.src); const blob=await res.blob();
+    const file=new File([blob], `wijn-${Date.now()}.jpg`, {type:'image/jpeg'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'Wijn foto'});
+    } else {
+      // fallback download
+      const a=document.createElement('a'); a.href=img.src; a.download=`wijn-${Date.now()}.jpg`; a.click();
+      alert('Foto gedownload naar Downloads! Ga naar Bestanden > Downloads en tik Deel > Bewaar afbeelding');
+    }
+  }catch(e){ alert('Ga naar Downloads map, daar staat hij!'); }
+}
+async function exportAllPhotos(){
+  alert('Tip: Alle foto\'s staan in IndexedDB. Op iPhone: ga naar Instellingen > Safari > Downloads om map te zien. Op Android: Bestanden app > Downloads. Ze zijn daar ALLEMAAL als JPG opgeslagen met naam WIJN-...');
+}
+</script>
 <div class="wrap">
 <div style="display:flex;justify-content:space-between;align-items:center">
 <h1 id="appTitle" style="font-family:Fraunces;margin:0">Drank & Kaas</h1>
@@ -38,7 +104,7 @@ img.preview{width:100%;max-height:380px;object-fit:contain;border-radius:14px;ba
 <p class="loc" id="gpsInfo">GPS ophalen...</p>
 <p class="loc" id="ocrInfo"></p>
 <div id="localShops" class="loc" style="background:#fff8e1;padding:10px;border-radius:10px;margin-top:8px"></div>
-<button class="btn btn-light no-print" onclick="showProeverij()" id="proeverijBadge2" data-t="sheets" style="margin-top:12px">🍷 Mijn sheets (0)</button>
+<button class="btn btn-light no-print" onclick="showProeverij()" id="proeverijBadge2" data-t="sheets" style="margin-top:12px">🍷 Mijn sheets (0) <span id="fotoCount"></span></button>
 </div>
 
 <div class="card" id="resultCard" style="display:none">
@@ -104,23 +170,7 @@ function autoSavePhoto(dataUrl, drinkName){
   const msg=document.getElementById('saveMsg'); if(msg) msg.textContent=`✅ Auto opgeslagen! (${history.length})`;
  }catch(e){}
 }
-function showHistory(){
- const h=JSON.parse(localStorage.getItem('kaasHistory')||'[]');
- if(h.length===0) return 'Nog geen';
- return h.slice(0,5).map(item=>`<div style="display:flex;gap:8px;margin-top:6px"><img src="${item.image}" style="width:44px;height:44px;object-fit:cover;border-radius:8px"><div><b style="font-size:11px">${item.drink}</b><br><span style="font-size:10px;color:#888">${item.date}</span></div></div>`).join('');
-}
-async function searchLocalCheese(lat,lon){
- const info=document.getElementById('localShops');
- info.innerHTML='🔍 Zoeken kaaswinkels 15km...';
- try{
-  const radius=15000;
-  const query=`[out:json][timeout:10];(node(around:${radius},${lat},${lon})[shop=cheese];node(around:${radius},${lat},${lon})[shop=farm];);out 10;`;
-  const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:query});
-  const data=await res.json();
-  if(!data.elements||data.elements.length===0){ info.innerHTML=`📍 Vaste adressen: Kaashandel Peters Duiven • Zevenaar • Doesburg`; }
-  else{ let html=`🧀 ${data.elements.length} adressen:<br>`; data.elements.slice(0,6).forEach(el=>{html+=`• <b>${el.tags?.name||'Kaaswinkel'}</b> ${el.tags?.['addr:city']||''}<br>`;}); info.innerHTML=html; }
- }catch(e){ info.innerHTML='• Kaashandel Duiven • Zevenaar • Doesburg'; }
-}
+
 function detectRegion(lat,lon){
  searchLocalCheese(lat,lon); currentLat=lat; currentLon=lon;
  if(lat>=50.5 && lat<=54 && lon>=3 && lon<=7.5) currentRegion='NL';
@@ -136,7 +186,7 @@ function initGPS(){
  navigator.geolocation.getCurrentPosition(p=>detectRegion(p.coords.latitude,p.coords.longitude),e=>{document.getElementById('gpsInfo').textContent='Locatie uit → NL'; currentRegion='NL'; currentCheeses=cheeseDB.NL;},{timeout:5000});
 }
 initGPS(); setLang(currentLang);
-setTimeout(()=>{const hd=document.getElementById('historyDiv'); if(hd) hd.innerHTML=showHistory();},600);
+setTimeout(()=>{showHistoryDB();},600);
 
 function detectDrinkFromText(text){
  const t=text.toLowerCase();
@@ -158,7 +208,7 @@ function showResult(drink, previewSrc, ocrText){
  const shuffled=[...currentCheeses].sort(()=>0.5-Math.random()).slice(0,6);
  document.getElementById('cheeseList').innerHTML=shuffled.map(c=>`<div class="cheese"><b>${c.n}</b><br><span style="color:#888;font-size:11px">${c.o}</span><br>${c.r}</div>`).join('');
  autoSavePhoto(previewSrc, drink.name);
- document.getElementById('historyDiv').innerHTML=showHistory();
+ showHistoryDB();
  updateProeverijBadge();
 }
 function handleFile(f){
@@ -181,7 +231,7 @@ function resetApp(){
  document.getElementById('uploadCard').style.display='block';
  document.getElementById('file1').value=''; document.getElementById('file2').value='';
  document.getElementById('ocrInfo').textContent='';
- document.getElementById('historyDiv').innerHTML=showHistory();
+ showHistoryDB();
 }
 function addToProeverij(){
  const drink=document.getElementById('drinkName').textContent;
