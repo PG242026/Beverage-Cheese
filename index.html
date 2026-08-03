@@ -31,6 +31,8 @@ img{max-width:100%;border-radius:14px;display:block}
 </div>
 
 <div class=card>
+<div id=status style=display:none></div>
+<div id=ocrText style=display:none></div>
 
 
 
@@ -90,11 +92,8 @@ function showResult(detectedText, imgSrc){
  document.getElementById('wDesc').textContent=desc;
  document.getElementById('wBadges').innerHTML='<span class=badge>9-11°C</span> <span class=badge>Droog</span> <span class=badge>Fris</span> <span class=badge>Chili</span>';
  document.getElementById('kaasList').innerHTML=cheeses.map(c=>`<div class=cheese><div class=cheese-info><b>${c.n}</b><span style="font-size:11px;color:#666">${c.o}</span><br><span style="font-size:12px">${c.r}</span></div><div class=cheese-score>${c.s}%</div></div>`).join('');
- document.getElementById('status').className='status-ok';
- document.getElementById('status').textContent='✅ '+name+' - perfecte match gevonden!';
- document.getElementById('step1').classList.add('active');
- document.getElementById('step2').style.opacity='1';
- document.getElementById('step2').classList.add('active');
+ let s=document.getElementById('status'); if(s){ s.className='status-ok'; s.textContent='✅ '+name; s.style.display='block'; }
+ // steps removed
  photos.unshift({src:imgSrc,date:new Date().toLocaleTimeString(),name:name});
  localStorage.setItem('v30p', JSON.stringify(photos.slice(0,12)));
  updGal();
@@ -104,9 +103,9 @@ function handleFile(f){
  if(!f) return;
  const src=URL.createObjectURL(f);
  const img=document.getElementById('previewBack'); img.src=src; img.style.display='block';
- document.getElementById('status').textContent='⏳ Etiket lezen...';
- document.getElementById('ocrText').style.display='block';
- document.getElementById('ocrText').textContent='Foto geladen, analyseren...';
+ let s1=document.getElementById('status'); if(s1){ s1.textContent='⏳ Etiket lezen...'; s1.style.display='block'; }
+ let oc=document.getElementById('ocrText'); if(oc) oc.style.display='block';
+ let oc1=document.getElementById('ocrText'); if(oc1) oc1.textContent='Foto geladen, analyseren...';
  showResult('sauvignon blanc chili droog fris appel grapefruit 9-11', src);
  if(window.Tesseract){
   Tesseract.recognize(f,'nld+eng').then(r=>{
@@ -118,7 +117,7 @@ function handleFile(f){
   });
  }
 }
-function resetApp(){ document.getElementById('res').style.display='none'; document.getElementById('previewBack').style.display='none'; document.getElementById('status').className='status-wait'; document.getElementById('status').textContent='📸 Stap 1: Maak foto van achterkant etiket'; }
+function resetApp(){ document.getElementById('res').style.display='none'; document.getElementById('previewBack').style.display='none'; let st=document.getElementById('status'); if(st) st.style.display='none'; }
 document.getElementById('fFront').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
 document.getElementById('fLib').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
 </script>
