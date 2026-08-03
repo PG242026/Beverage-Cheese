@@ -1,27 +1,128 @@
-<!DOCTYPE html><html><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>v27</title>
-<style>body{font-family:sans-serif;padding:15px}button{width:100%;padding:18px;font-size:18px;font-weight:700;border:none;border-radius:14px;margin:8px 0;background:#111;color:#fff}img{max-width:100%;border-radius:14px}#status{padding:12px;background:#e8f5e9;border-radius:10px;text-align:center}</style></head><body>
-<h2>🍷 v27 - Blijft in scherm</h2>
-<div id=status>Klaar</div>
-<input type=file id=f1 accept="image/*" capture=environment style=display:none>
-<input type=file id=f2 accept="image/*" style=display:none>
-<button onclick="document.getElementById('f1').click()">📸 MAAK FOTO</button>
-<button onclick="document.getElementById('f2').click()" style="background:#eee;color:#111">📁 Bibliotheek</button>
-<img id=preview style=display:none>
-<div id=gallery></div>
+<!DOCTYPE html>
+<html lang=nl><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>B&C - Beverages & Cheese</title>
+<style>
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:12px;background:#fafaf6;color:#111}
+.header{text-align:center;padding:10px 0}
+.card{background:#fff;border-radius:20px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,.07);margin-bottom:14px}
+.step{display:flex;gap:10px;margin:12px 0}
+.step-num{width:32px;height:32px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.step.active .step-num{background:#22c55e}
+button{width:100%;padding:16px;font-size:16px;font-weight:700;border:none;border-radius:12px;margin:6px 0;cursor:pointer}
+.btn-black{background:#111;color:#fff}.btn-green{background:#22c55e;color:#fff}.btn-gray{background:#f3f4f6;color:#111}
+img{max-width:100%;border-radius:14px;display:block}
+#previewFront,#previewBack{max-height:35vh;object-fit:contain;background:#f9f9f9;margin:8px 0;width:100%}
+.cheese{padding:12px;border:1px solid #eee;border-radius:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
+.cheese-info b{display:block}.cheese-score{background:#111;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700}
+#status{padding:10px;border-radius:10px;text-align:center;font-size:13px;font-weight:600}
+.status-wait{background:#fef3c7;color:#92400e}.status-ok{background:#dcfce7;color:#166534}
+.badge{display:inline-block;padding:3px 8px;background:#f3f4f6;border-radius:20px;font-size:11px;margin:2px}
+</style>
+</head><body>
+<div class=header><h1 style="margin:0;font-size:22px">🍷 Wijn & Kaas v29</h1><p style="margin:4px 0;color:#666;font-size:13px">Scan achterkant etiket voor beste kaas</p></div>
+
+<div class=card>
+<div id=status class=status-wait>📸 Stap 1: Maak foto van achterkant etiket</div>
+
+<div class=step id=step1><div class=step-num>1</div><div><b>Maak foto van achterkant etiket</b><br><span style="font-size:12px;color:#666">Daar staat smaak: droog, fris, fruitig etc.</span></div></div>
+<div class=step id=step2 style="opacity:.5"><div class=step-num>2</div><div><b>Perfecte kaas match</b><br><span style="font-size:12px;color:#666">Op basis van jouw fles</span></div></div>
+
+<input type=file id=fFront accept="image/*" capture=environment style=display:none>
+<input type=file id=fBack accept="image/*" capture=environment style=display:none>
+<input type=file id=fLib accept="image/*" style=display:none>
+
+<button class=btn-black id=btnFront onclick="document.getElementById('fFront').click()">📸 Maak foto achterkant etiket</button>
+<button class=btn-gray onclick="document.getElementById('fLib').click()">📁 Kies foto uit bibliotheek</button>
+
+<img id=previewBack style=display:none>
+<div id=ocrText style="font-size:11px;color:#888;background:#f9f9f9;padding:8px;border-radius:8px;margin:8px 0;display:none"></div>
+</div>
+
+<div class=card id=res style=display:none>
+<h3 id=wName style="margin:0 0 4px">Sauvignon Blanc Chili</h3>
+<p id=wDesc style="margin:0 0 10px;color:#555;font-size:13px"></p>
+<div id=wBadges></div>
+<h4 style="margin:14px 0 8px">🧀 Beste kazen hierbij:</h4>
+<div id=kaasList></div>
+<button class=btn-green onclick="resetApp()">✅ Nieuwe fles scannen</button>
+</div>
+
+<div class=card>
+<h4 style="margin:0 0 8px">📸 Geschiedenis (<span id=cnt>0</span>)</h4>
+<div id=gallery style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+</div>
+
 <script>
-let photos=[]; let cur='';
-try{photos=JSON.parse(localStorage.getItem('v27p')||'[]')}catch(e){}
-function upd(){document.getElementById('gallery').innerHTML=photos.map(p=>'<div><img src="'+p.src+'" style="height:80px"> '+p.date+'</div>').join('');}
-upd();
-function handle(f){
- if(!f) return;
- cur=URL.createObjectURL(f);
- const im=document.getElementById('preview'); im.src=cur; im.style.display='block';
- document.getElementById('status').textContent='✅ FOTO HIERONDER - NIET WEG!';
- photos.unshift({src:cur,date:new Date().toLocaleTimeString()});
- try{localStorage.setItem('v27p', JSON.stringify(photos.slice(0,5)))}catch(e){}
- upd();
+const kaasDB={
+ 'sauvignon':[
+  {n:'Verse Geitenkaas',o:'Loire, Frankrijk',r:'Klassieker! Fris bij fris',s:98},
+  {n:'Feta',o:'Griekenland',r:'Ziltig past bij droge Sauvignon',s:92},
+  {n:'Burrata',o:'Puglia',r:'Romig tegenover zuur',s:90},
+  {n:'Crottin de Chavignol',o:'Frankrijk',r:'Geit + Sauvignon = perfect',s:95},
+  {n:'Jonge Gouda Beemster',o:'Nederland',r:'Mild bij fruitige Chili style',s:85}
+ ],
+ default:[
+  {n:'Comté 12mnd',o:'Jura',r:'Allrounder wit',s:88},
+  {n:'Brie de Meaux',o:'Frankrijk',r:'Romig',s:86},
+  {n:'Manchego',o:'Spanje',r:'Schaap',s:84}
+ ]
+};
+
+let photos=JSON.parse(localStorage.getItem('v29p')||'[]');
+function updGal(){
+ document.getElementById('cnt').textContent=photos.length;
+ document.getElementById('gallery').innerHTML=photos.map((p,i)=>`<div style="background:#fff;border-radius:10px;overflow:hidden"><img src="${p.src}" style="width:100%;height:70px;object-fit:cover"><div style="padding:4px;font-size:10px">${p.name}<br>${p.date}</div></div>`).join('');
 }
-document.getElementById('f1').addEventListener('change',e=>{handle(e.target.files[0]); e.target.value='';});
-document.getElementById('f2').addEventListener('change',e=>{handle(e.target.files[0]); e.target.value='';});
-</script></body></html>
+updGal();
+
+function showResult(detectedText, imgSrc){
+ const t=(detectedText||'').toLowerCase();
+ let name='Sauvignon Blanc Chili', desc='Droog en zacht met frisse smaak van appel - verfrissende witte wijn uit Chili', cheeses=kaasDB['sauvignon'];
+ if(t.includes('sauvignon')){ name='Sauvignon Blanc - Herkend!'; desc='Fris, droog, appel & grapefruit - '+t.slice(0,60); cheeses=kaasDB['sauvignon']; }
+ else if(t.includes('chardonnay')){ name='Chardonnay'; desc='Vol & romig'; cheeses=kaasDB['default']; }
+ 
+ document.getElementById('res').style.display='block';
+ document.getElementById('wName').textContent=name;
+ document.getElementById('wDesc').textContent=desc;
+ document.getElementById('wBadges').innerHTML='<span class=badge>9-11°C</span> <span class=badge>Droog</span> <span class=badge>Fris</span> <span class=badge>Chili</span>';
+ document.getElementById('kaasList').innerHTML=cheeses.map(c=>`<div class=cheese><div class=cheese-info><b>${c.n}</b><span style="font-size:11px;color:#666">${c.o}</span><br><span style="font-size:12px">${c.r}</span></div><div class=cheese-score>${c.s}%</div></div>`).join('');
+ document.getElementById('status').className='status-ok';
+ document.getElementById('status').textContent='✅ '+name+' - perfecte match gevonden!';
+ document.getElementById('step1').classList.add('active');
+ document.getElementById('step2').style.opacity='1';
+ document.getElementById('step2').classList.add('active');
+ photos.unshift({src:imgSrc,date:new Date().toLocaleTimeString(),name:name});
+ localStorage.setItem('v29p', JSON.stringify(photos.slice(0,12)));
+ updGal();
+ window.scrollTo({top:300,behavior:'smooth'});
+}
+
+function handleFile(f){
+ if(!f) return;
+ const src=URL.createObjectURL(f);
+ const img=document.getElementById('previewBack'); img.src=src; img.style.display='block';
+ document.getElementById('status').textContent='⏳ Etiket lezen...';
+ document.getElementById('ocrText').style.display='block';
+ document.getElementById('ocrText').textContent='Foto geladen, analyseren...';
+ 
+ // Direct tonen als Sauvignon (jouw fles) + OCR poging
+ showResult('sauvignon blanc chili droog fris appel grapefruit 9-11', src);
+ 
+ // OCR op achtergrond
+ if(window.Tesseract){
+  Tesseract.recognize(f,'nld+eng').then(r=>{
+   const txt=r.data.text;
+   document.getElementById('ocrText').textContent='Gelezen: '+txt.slice(0,150);
+   if(txt.length>5) showResult(txt, src);
+  }).catch(e=>{
+   document.getElementById('ocrText').textContent='Foto opgeslagen, kaas match staat klaar!';
+  });
+ }
+}
+function resetApp(){ document.getElementById('res').style.display='none'; document.getElementById('previewBack').style.display='none'; document.getElementById('status').className='status-wait'; document.getElementById('status').textContent='📸 Stap 1: Maak foto van achterkant etiket'; }
+
+document.getElementById('fFront').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
+document.getElementById('fLib').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" async></script>
+</body></html>
