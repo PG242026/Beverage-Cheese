@@ -1,372 +1,235 @@
 <!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Drank & Kaas Pairing</title>
+<html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drank & Kaas - Sheets</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#fbf8f1;font-family:Inter,sans-serif;color:#1a1a1a}
-.wrap{max-width:480px;margin:0 auto;padding:20px}
-.card{background:#fff;border-radius:24px;box-shadow:0 4px 24px rgba(0,0,0,.06);padding:20px;margin-top:16px}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:16px;border:none;background:#111;color:#fff;font-weight:600;font-size:16px;cursor:pointer;margin-top:12px}
-.btn2{background:#f3efe6;color:#111}
-img.preview{width:100%;max-height:420px;object-fit:contain;border-radius:18px;background:#f9f6ef}
-.badge{display:inline-block;background:#111;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px}
-.cheese{border:1px solid #eee;border-radius:16px;padding:12px;margin-top:10px}
-h1{font-family:Fraunces,serif;margin:8px 0}
-.loc{font-size:12px;color:#888;margin-top:8px}
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><style>@media print {.no-print{display:none} .sheet{page-break-after:always}}</style></head>
-<body>
+*{box-sizing:border-box}body{margin:0;background:#fbf8f1;font-family:Inter;color:#1a1a1a}
+.wrap{max-width:500px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:18px;margin-top:14px}
+.btn{width:100%;padding:16px;border-radius:14px;border:none;font-weight:700;font-size:15px;cursor:pointer;margin-top:10px;display:flex;justify-content:center;align-items:center;gap:8px}
+.btn-green{background:#2e7d32;color:#fff}
+.btn-black{background:#111;color:#fff}
+.btn-light{background:#f3efe6;color:#111;border:1px solid #ddd}
+img.preview{width:100%;max-height:380px;object-fit:contain;border-radius:14px;background:#f9f6ef}
+.badge{background:#111;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px}
+.cheese{border:1px solid #eee;border-radius:12px;padding:10px;margin-top:8px;font-size:13px}
+.loc{font-size:12px;color:#888;margin-top:6px}
+.sheet{border:2px dashed #aaa;border-radius:16px;padding:16px;margin-bottom:16px;page-break-after:always;background:#fff}
+@media print{.no-print{display:none} .sheet{border:none}}
+</style></head><body>
 <div class="wrap">
-<div style="display:flex;justify-content:space-between;align-items:center"><h1>Drank & Kaas</h1><span class="badge" id="locBadge">📍 Locatie bepalen...</span></div>
-<p style="color:#666" id="locText">Kazen op basis van waar je bent + echte etiket herkenning</p>
+<div style="display:flex;justify-content:space-between;align-items:center"><h1 style="font-family:Fraunces;margin:0">Drank & Kaas</h1><span class="badge" id="locBadge">📍 Locatie...</span></div>
+<p class="loc" id="locText">Auto locatie + echte herkenning</p>
 
 <div class="card" id="uploadCard">
 <input type="file" id="file1" accept="image/*" style="display:none">
 <input type="file" id="file2" accept="image/*" capture="environment" style="display:none">
-<button class="btn" onclick="document.getElementById('file1').click()">📁 Kies foto</button>
-<button class="btn btn2" onclick="document.getElementById('file2').click()">📸 Maak foto</button>
-<p class="loc" id="gpsInfo">GPS wordt opgehaald...</p><div id="localShops" class="loc" style="background:#fff8e1;padding:10px;border-radius:12px;margin-top:10px"></div>
+<button class="btn btn-black" onclick="document.getElementById('file1').click()">📁 Kies foto van wijn</button>
+<button class="btn btn-light" onclick="document.getElementById('file2').click()">📸 Maak foto</button>
+<p class="loc" id="gpsInfo">GPS ophalen...</p>
 <p class="loc" id="ocrInfo"></p>
+<div id="localShops" class="loc" style="background:#fff8e1;padding:10px;border-radius:10px;margin-top:8px"></div>
+<button class="btn btn-light no-print" onclick="showProeverij()" id="proeverijBadge2" style="margin-top:12px">🍷 Mijn sheets (0) - Bekijk / Print</button>
 </div>
 
 <div class="card" id="resultCard" style="display:none">
 <img id="previewImg" class="preview">
-<h2 id="drinkName" style="font-family:Fraunces;margin:16px 0 8px"></h2>
-<p id="drinkDesc" style="color:#666;font-size:14px"></p>
-<h3 id="cheeseTitle" style="margin-top:20px">Kazen uit jouw regio:</h3>
-<div id="saveMsg" style="background:#e8f5e9;padding:8px;border-radius:10px;font-size:12px;margin-top:10px;color:#2e7d32"></div><div id="saveMsg" style="background:#e8f5e9;padding:8px;border-radius:10px;font-size:12px;margin-top:10px;color:#2e7d32"></div><div id="cheeseList"></div><div style="margin-top:16px"><h4 style="font-size:14px">📸 Jouw geschiedenis (auto-opgeslagen):</h4><div id="historyDiv"></div></div>
-<button class="btn" onclick="addToProeverij()" style="background:#2e7d32">➕ Opslaan als aparte sheet</button><button class="btn btn2" onclick="showProeverij()" id="proeverijBadge">🍷 Mijn sheets bekijken & printen</button><button class="btn btn2" onclick="resetApp()">Opnieuw</button>
+<h2 id="drinkName" style="font-family:Fraunces;margin:12px 0 4px"></h2>
+<p id="drinkDesc" style="color:#666;font-size:13px"></p>
+<div id="saveMsg" style="background:#e8f5e9;padding:8px;border-radius:10px;font-size:12px;margin-top:8px;color:#2e7d32"></div>
+<h3 id="cheeseTitle" style="font-size:15px;margin-top:12px">🧀 Kazen uit regio:</h3>
+<div id="cheeseList"></div>
+
+<div style="margin-top:18px;border-top:2px solid #111;padding-top:12px">
+<p style="font-weight:700;margin:0 0 8px">💾 OPSLAAN VOOR PROEVERIJ:</p>
+<button class="btn btn-green" onclick="addToProeverij()">➕ OPSLAAN ALS APARTE SHEET</button>
+<p style="font-size:11px;color:#666;text-align:center">Elke foto + kazen = eigen A4 om te printen</p>
+<button class="btn btn-black" onclick="showProeverij()" id="proeverijBadge">🍷 BEKIJK ALLE SHEETS & PRINT</button>
+<button class="btn btn-light" onclick="resetApp()">🔄 Opnieuw / Nieuwe foto</button>
+</div>
+
+<div style="margin-top:16px"><h4 style="font-size:13px">📸 Geschiedenis:</h4><div id="historyDiv" style="font-size:12px"></div></div>
 </div>
 </div>
 
 <script>
 const drinks=[
-{name:"Sauvignon Blanc - Fris & Fruitig",desc:"Frisse zuren, citrus - perfect bij geit & jong"},
-{name:"Riesling - Fris & Fruitig",desc:"Frisse zuren, citrus"},
-{name:"Chardonnay - Rijk & Romig",desc:"Volle witte wijn, houtgerijpt"},
-{name:"Witbier - Zacht & Kruidig",desc:"Kruidig, licht zoetje"},
-{name:"Cabernet Sauvignon - Krachtig",desc:"Tanninerijk rood"},
-{name:"Port - Zoet & Warm",desc:"Zoet versterkt blauw"}
+{name:"Sauvignon Blanc - Fris & Fruitig",desc:"Frisse zuren, citrus"},
+{name:"Riesling - Fris",desc:"Frisse zuren"},
+{name:"Chardonnay - Rijk",desc:"Vol wit"},
+{name:"Witbier",desc:"Kruidig"},
+{name:"Cabernet Sauvignon - Rood",desc:"Krachtig rood"},
+{name:"Port",desc:"Zoet"}
 ];
-
 const cheeseDB={
 NL:[
-{n:"Remeker Puur (Lunteren)",o:"Veluwe - Jersey koe - rauwmelks",r:"Top Gelders! Prijswinnaar, 20km van Duiven, bij Kaashandel te koop"},
-{n:"Goudse Oude 18m - Liemers Rijping",o:"Liemers / Duiven - koe",r:"Karamel & kristal, lokaal gerijpt in De Liemers"},
-{n:"Boerenkaas Stolwijk Belegen",o:"Groene Hart - koe - ook hier",r:"Ambachtelijk, vol & romig - AH Duiven"},
-{n:"Doesburgse Mosterdkaas",o:"Doesburg (10km) - koe",r:"Lokaal! Met Doesburgse mosterd - streekproduct"},
-{n:"Betuwse Geitenkaas - De Bonte Geit",o:"Betuwe - geit",r:"Fris & zacht uit de Betuwse boomgaarden"},
-{n:"Veluwse Blauw - De Franschman",o:"Veluwe - blauw koe",r:"Gelders blauw, pittig & lokaal"},
-{n:"Old Amsterdam Oud",o:"NH - ook volop in Duiven",r:"Zoet & pittig, overal verkrijgbaar"},
-{n:"Maasdam - Liemers",o:"NL - koe",r:"Notig & gaten, mild"},
-{n:"Geitenkaas Ede - De Goudse Geit",o:"Ede / Veluwe - geit",r:"Fris & lokaal, Veluwe 30km"},
-{n:"Blije Koe - Groesbeek",o:"Berg en Dal - koe",r:"Biologisch, net over de Waal"},
-{n:"Limburger - Liemers",o:"Limburg / Liemers grens",r:"Smeuïg & geurig, echte streek"},
-{n:"Rookkaas - Achterhoek",o:"Achterhoek - gerookt",r:"Rokerig, boeren gerookt"},
-{n:"Comté 18 mois",o:"FR - bij Kaashandel Duiven te koop",r:"Notig & complex - wel hier verkrijgbaar"},
-{n:"Allgäuer Emmentaler",o:"DE - bij Jumbo Duiven",r:"Duits mild, supermarkt"},
-{n:"Goudse Graskaas - Lente",o:"Liemers - seizoens",r:"Voorjaar, zacht & romig - nu verkrijgbaar"}
+{n:"Remeker Puur (Lunteren) - 20km",o:"Veluwe Jersey",r:"Top Gelders! Prijswinnaar"},
+{n:"Goudse Oude 18m - Liemers",o:"Duiven/Zevenaar",r:"Karamel & kristal, lokaal gerijpt"},
+{n:"Doesburgse Mosterdkaas - 10km",o:"Doesburg",r:"Lokaal! Met Doesburgse mosterd"},
+{n:"Betuwse Geitenkaas",o:"Betuwe",r:"Fris & zacht"},
+{n:"Veluwse Blauw",o:"Veluwe",r:"Gelders blauw"},
+{n:"Boerenkaas Stolwijk",o:"AH/Jumbo Duiven",r:"Ambachtelijk vol"},
+{n:"Geitenkaas Ede",o:"Veluwe 30km",r:"Fris lokaal"},
+{n:"Old Amsterdam",o:"Overal Duiven",r:"Zoet & pittig"},
+{n:"Limburger Liemers",o:"Grens",r:"Smeuïg & geurig"},
+{n:"Goudse Graskaas",o:"Lente - nu!",r:"Zacht & romig"}
 ],
-DE:[
-{n:"Allgäuer Emmentaler",o:"Allgäu - koe",r:"Duits icoon"},
-{n:"Tilsiter",o:"DE - koe",r:"Pittig & kruidig"},
-{n:"Limburger",o:"DE/NL grens",r:"Smeuïg"},
-{n:"Butterkäse",o:"DE - koe",r:"Zacht & boterig"},
-{n:"Goudse Oude",o:"NL - ook hier te koop",r:"Over de grens"},
-{n:"Remeker",o:"NL Veluwe - ook hier",r:"Gelders top in DE winkels"}
-],
-BE:[
-{n:"Herve",o:"Luik - koe",r:"Sterk erfgoed"},
-{n:"Chimay à la Bière",o:"Chimay",r:"Trappist"},
-{n:"Brugge Oud",o:"West-VL",r:"Karamel"},
-{n:"Goudse Oude",o:"NL - ook hier",r:"Volop"}
-],
-DEFAULT:[
-{n:"Comté 18 mois (FR)",o:"FR",r:"Notig"},
-{n:"Gruyère Alpage (CH)",o:"CH",r:"Zoet-hartig"},
-{n:"Goudse Oude 18m (NL)",o:"NL",r:"Karamel"},
-{n:"Manchego Curado (ES)",o:"ES",r:"Pittig"},
-{n:"Parmigiano Reggiano 24m (IT)",o:"IT",r:"Umami"},
-{n:"Stilton Blue (UK)",o:"UK",r:"Blauw"}
-]
+DE:[{n:"Allgäuer Emmentaler",o:"Allgäu",r:"Nootachtig"},{n:"Tilsiter",o:"DE",r:"Pittig"},{n:"Limburger",o:"Grens",r:"Smeuïg"},{n:"Goudse Oude",o:"NL ook hier",r:"Goed te krijgen"}],
+BE:[{n:"Herve",o:"Luik",r:"Sterk"},{n:"Chimay",o:"Chimay",r:"Trappist"}],
+DEFAULT:[{n:"Comté",o:"FR",r:"Notig"},{n:"Gruyère",o:"CH",r:"Zoet-hartig"}]
 };
+let currentRegion='NL',currentCheeses=cheeseDB.NL,currentLat=0,currentLon=0;
 
-
-// Auto-save system - werkt op alle telefoons/tablets
 function autoSavePhoto(dataUrl, drinkName){
-  try {
-    // 1. Opslaan in browser geheugen (blijft bewaard)
-    const history = JSON.parse(localStorage.getItem('kaasHistory')||'[]');
-    history.unshift({
-      id: Date.now(),
-      date: new Date().toLocaleString('nl-NL'),
-      drink: drinkName,
-      image: dataUrl,
-      lat: currentLat || 0,
-      lon: currentLon || 0,
-      region: currentRegion
-    });
-    // max 20 bewaren
+  try{
+    const history=JSON.parse(localStorage.getItem('kaasHistory')||'[]');
+    history.unshift({id:Date.now(),date:new Date().toLocaleString('nl-NL'),drink:drinkName,image:dataUrl,lat:currentLat,lon:currentLon,region:currentRegion});
     if(history.length>20) history.pop();
     localStorage.setItem('kaasHistory', JSON.stringify(history));
-    
-    // 2. Automatisch downloaden naar Downloads map
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    const safeName = drinkName.replace(/[^a-z0-9]/gi,'_').substring(0,20);
-    a.download = `kaas-pairing-${safeName}-${new Date().toISOString().slice(0,10)}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    // 3. Toon opgeslagen melding
-    const msg = document.getElementById('saveMsg');
-    if(msg) msg.textContent = `✅ Automatisch opgeslagen! (${history.length} foto's in geschiedenis) + gedownload naar Downloads`;
-    
-    // 4. Probeer ook te delen naar fotobibliotheek via Web Share API (nieuwe telefoons)
-    if(navigator.canShare && navigator.share){
-      // niet automatisch, wel knop
-    }
-  } catch(e){
-    console.log('save fail',e);
-  }
+    const a=document.createElement('a'); a.href=dataUrl;
+    a.download=`kaas-${drinkName.replace(/[^a-z0-9]/gi,'_').slice(0,15)}-${new Date().toISOString().slice(0,10)}.jpg`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    const msg=document.getElementById('saveMsg'); if(msg) msg.textContent=`✅ Auto opgeslagen! + gedownload (${history.length} in geschiedenis)`;
+  }catch(e){}
 }
-
-let currentLat=0, currentLon=0;
-
 function showHistory(){
-  const h = JSON.parse(localStorage.getItem('kaasHistory')||'[]');
-  if(h.length===0) return 'Nog geen geschiedenis';
-  return h.slice(0,5).map(item=>`<div style="display:flex;gap:8px;margin-top:8px;align-items:center"><img src="${item.image}" style="width:50px;height:50px;object-fit:cover;border-radius:8px"><div><b style="font-size:12px">${item.drink}</b><br><span style="font-size:10px;color:#888">${item.date} - ${item.region}</span></div></div>`).join('');
+  const h=JSON.parse(localStorage.getItem('kaasHistory')||'[]');
+  if(h.length===0) return 'Nog geen';
+  return h.slice(0,5).map(item=>`<div style="display:flex;gap:8px;margin-top:6px"><img src="${item.image}" style="width:44px;height:44px;object-fit:cover;border-radius:8px"><div><b style="font-size:11px">${item.drink}</b><br><span style="font-size:10px;color:#888">${item.date}</span></div></div>`).join('');
 }
-
-
-function addToProeverij(){
-  const drink = document.getElementById('drinkName').textContent;
-  const desc = document.getElementById('drinkDesc').textContent;
-  const cheeses = document.getElementById('cheeseList').innerHTML;
-  const imgSrc = document.getElementById('previewImg').src;
-  let list = JSON.parse(localStorage.getItem('proeverij')||'[]');
-  list.push({id:Date.now(), drink, desc, cheeses, img:imgSrc, date:new Date().toLocaleString('nl-NL'), region:currentRegion});
-  localStorage.setItem('proeverij', JSON.stringify(list));
-  alert(`✅ Sheet opgeslagen! Nu ${list.length} aparte sheets klaar om te printen.`);
-  updateProeverijBadge();
-}
-function updateProeverijBadge(){
-  const list = JSON.parse(localStorage.getItem('proeverij')||'[]');
-  const b = document.getElementById('proeverijBadge');
-  const b2 = document.getElementById('proeverijBadge2');
-  if(b) b.textContent = `🍷 Proeverij (${list.length} sheets)`;
-  if(b2) b2.textContent = `🍷 Mijn proeverij sheets (${list.length}) - Print per stuk`;
-}
-
-function showProeverij(){
-  const list = JSON.parse(localStorage.getItem('proeverij')||'[]');
-  const history = JSON.parse(localStorage.getItem('kaasHistory')||'[]');
-  const all = list.length>0 ? list : history.map(h=>({drink:h.drink, desc:'Uit geschiedenis', cheeses:`<div class="cheese">${h.drink} - ${h.region}</div>`, img:h.image, date:h.date, region:h.region}));
-  
-  if(all.length===0){ alert('Nog geen foto\'s. Maak eerst een foto van een wijn'); return; }
-  let html = `<div id="printArea" style="padding:20px;font-family:Inter">`;
-  html += `<style>@media print { .no-print{display:none} .sheet{page-break-after:always} } .sheet{border:2px dashed #ccc;border-radius:16px;padding:20px;margin-bottom:20px;page-break-after:always}</style>`;
-  html += `<div class="no-print" style="margin-bottom:20px"><h1 style="font-family:Fraunces">🍷 Jouw Proeverij Sheets - ${all.length} stuks</h1><p>Elke foto + kazen = aparte A4 sheet. Klik print voor alles, of per sheet.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button onclick="window.print()" style="padding:12px 20px;background:#111;color:#fff;border:none;border-radius:12px">🖨️ Print ALLE sheets (elke op eigen A4)</button><button onclick="downloadProeverijPDF()" style="padding:12px 20px;background:#2e7d32;color:#fff;border:none;border-radius:12px">📄 Download als PDF (elk op eigen pagina)</button><button onclick="clearProeverij()" style="padding:12px 20px;background:#ffebee;border:none;border-radius:12px">🗑️ Alles wissen</button><button onclick="document.getElementById('proeverijView').style.display='none'" style="padding:12px 20px">Sluiten</button></div><hr></div>`;
-  
-  all.forEach((item, i)=>{
-    html += `<div class="sheet" id="sheet-${i}" style="background:#fff">
-      <div style="display:flex;justify-content:space-between"><span style="background:#111;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px">Sheet ${i+1}/${all.length}</span><span style="font-size:12px;color:#888">${item.date} | ${item.region}</span></div>
-      <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap">
-        <img src="${item.img}" style="width:220px;height:320px;object-fit:contain;border-radius:16px;background:#f9f6ef;border:1px solid #eee">
-        <div style="flex:1;min-width:200px">
-          <h2 style="font-family:Fraunces;margin:0 0 8px">${item.drink}</h2>
-          <p style="color:#666;font-size:13px">${item.desc}</p>
-          <h3 style="margin-top:16px;font-size:16px">🧀 Bijpassende kazen uit jouw regio:</h3>
-          <div style="margin-top:8px">${item.cheeses}</div>
-          <div style="margin-top:16px;padding:10px;background:#fbf8f1;border-radius:12px;font-size:11px">📍 Gevonden in: ${item.region} | Te koop bij: Kaashandel Peters Duiven, Boerderijwinkel Liemers<br>Tip: Serveer kaas op kamertemperatuur 30min van te voren</div>
-        </div>
-      </div>
-      <div class="no-print" style="margin-top:12px"><button onclick="printSheet(${i})" style="padding:8px 14px;border-radius:10px;border:1px solid #ddd;background:#fff">🖨️ Print alleen deze sheet</button></div>
-    </div>`;
-  });
-  html += `</div>`;
-  
-  let div = document.getElementById('proeverijView');
-  if(!div){
-    div = document.createElement('div');
-    div.id='proeverijView';
-    div.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:#fbf8f1;overflow:auto;z-index:9999;padding:20px';
-    document.body.appendChild(div);
-  }
-  div.innerHTML = html;
-  div.style.display='block';
-}
-
-function printSheet(i){
-  const sheet = document.getElementById(`sheet-${i}`);
-  const win = window.open('', '', 'height=800,width=600');
-  win.document.write('<html><head><title>Sheet '+(i+1)+'</title></head><body>');
-  win.document.write(sheet.innerHTML);
-  win.document.write('</body></html>');
-  win.document.close();
-  win.print();
-}
-
-function downloadProeverijPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const list = JSON.parse(localStorage.getItem('proeverij')||'[]');
-  const history = JSON.parse(localStorage.getItem('kaasHistory')||'[]');
-  const all = list.length>0 ? list : history;
-  if(all.length===0) return;
-  
-  all.forEach((item, i)=>{
-    if(i>0) doc.addPage();
-    doc.setFontSize(18); doc.text(`Sheet ${i+1}: ${item.drink}`, 10, 15);
-    doc.setFontSize(10); doc.text(`${item.date} | Regio: ${item.region}`, 10, 22);
-    doc.setFontSize(11); doc.text('Bijpassende kazen uit regio:',10,32);
-    // cheese text clean
-    const cheeseText = (item.cheeses||'').replace(/<[^>]*>/g,' ').substring(0,300);
-    const lines = doc.splitTextToSize(cheeseText, 180);
-    doc.text(lines, 10, 40);
-    doc.setFontSize(9); doc.text('Tip: Kaas 30min op kamertemperatuur - verkrijgbaar bij lokale kaashandel',10,280);
-  });
-  doc.save(`proeverij-sheets-${new Date().toISOString().slice(0,10)}.pdf`);
-}
-
-function clearProeverij(){
-  if(confirm('Alle sheets wissen?')){
-    localStorage.removeItem('proeverij');
-    const v=document.getElementById('proeverijView'); if(v) v.style.display='none';
-    updateProeverijBadge();
-  }
-}
-setTimeout(updateProeverijBadge, 600);
-
-let currentRegion='NL';
-let currentCheeses=cheeseDB.NL;
-
-
 async function searchLocalCheese(lat,lon){
-  const info = document.getElementById('localShops');
-  info.innerHTML = '🔍 Zoeken naar kaasboeren & kaasspeciaalzaken binnen 15km van je locatie...';
-  try {
-    // Overpass API - cheese shops, farm shops, deli around location
-    const radius = 15000;
-    const query = `[out:json][timeout:10];(node(around:${radius},${lat},${lon})[shop=cheese];node(around:${radius},${lat},${lon})[shop=deli];node(around:${radius},${lat},${lon})[shop=farm];way(around:${radius},${lat},${lon})[shop=cheese];);out center 20;`;
-    const res = await fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:query});
-    const data = await res.json();
-    if(!data.elements || data.elements.length===0){
-      info.innerHTML = `📍 Geen kaaswinkels direct gevonden in 15km, wel deze vaste lokale adressen rond Duiven:<br><br>
-      • <b>Kaashandel Peters - Duiven</b> (Remeker, Goudse Oude)<br>
-      • <b>Boerderijwinkel De Liemers - Zevenaar</b> (Boerenkaas, Geitenkaas)<br>
-      • <b>Kaasboerderij Groot Nibbelink - Doesburg</b> (Doesburgse Mosterdkaas)<br>
-      • <b>Biologische winkel De Groene Schuur - Groessen</b><br>
-      • <b>Jumbo / AH Duiven - streekkaas schap</b>`;
-      return;
+  const info=document.getElementById('localShops');
+  info.innerHTML='🔍 Zoeken kaaswinkels 15km...';
+  try{
+    const radius=15000;
+    const query=`[out:json][timeout:10];(node(around:${radius},${lat},${lon})[shop=cheese];node(around:${radius},${lat},${lon})[shop=farm];);out 10;`;
+    const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:query});
+    const data=await res.json();
+    if(!data.elements||data.elements.length===0){
+      info.innerHTML=`📍 Vaste adressen rond Duiven:<br>• Kaashandel Peters Duiven<br>• Boerderijwinkel Zevenaar<br>• Kaasboerderij Doesburg (Mosterdkaas)<br>• Betuwse Geit Opheusden`;
+    } else {
+      let html=`🧀 ${data.elements.length} adressen binnen 15km:<br>`;
+      data.elements.slice(0,6).forEach(el=>{html+=`• <b>${el.tags?.name||'Kaaswinkel'}</b> ${el.tags?.['addr:city']||''}<br>`;});
+      info.innerHTML=html;
     }
-    let html = `🧀 <b>${data.elements.length} kaas-adressen binnen 15km gevonden:</b><br><br>`;
-    data.elements.slice(0,8).forEach(el=>{
-      const name = el.tags?.name || el.tags?.shop || 'Kaaswinkel';
-      const addr = [el.tags?.['addr:street'], el.tags?.['addr:city']].filter(Boolean).join(' ');
-      html += `• <b>${name}</b> ${addr?'- '+addr:''}<br>`;
-    });
-    html += `<br><small>Live gezocht via OpenStreetMap rond ${lat.toFixed(3)},${lon.toFixed(3)}</small>`;
-    info.innerHTML = html;
-  } catch(e){
-    info.innerHTML = `⚠️ Live zoeken mislukt, vaste lokale tips rond Duiven:<br>
-    • Kaashandel Peters Duiven<br>
-    • Boerderijwinkel Zevenaar<br>
-    • Kaasboerderij Doesburg (Mosterdkaas)<br>
-    • Betuwse Geitenboerderij Opheusden`;
-  }
+  }catch(e){ info.innerHTML='• Kaashandel Duiven • Zevenaar • Doesburg'; }
 }
-
 function detectRegion(lat,lon){
-  searchLocalCheese(lat,lon);
-if(lat>=50.5 && lat<=54 && lon>=3 && lon<=7.5){currentRegion='NL';}
-else if(lat>=47 && lat<=55.5 && lon>=5.5 && lon<=15.5){currentRegion='DE';}
-else if(lat>=49.4 && lat<=51.6 && lon>=2.5 && lon<=6.5){currentRegion='BE';}
-else {currentRegion='DEFAULT';}
-currentCheeses=cheeseDB[currentRegion] || cheeseDB.DEFAULT;
-  currentLat=lat; currentLon=lon;
-document.getElementById('locBadge').textContent = currentRegion==='NL'?'📍 Gelderland, NL': currentRegion==='DE'?'📍 NRW, DE': currentRegion==='BE'?'📍 BE': '📍 Europa';
-document.getElementById('locText').textContent = currentRegion==='NL'?'Kazen uit jouw regio: Gelderland & NL':'Kazen uit jouw regio';
-document.getElementById('gpsInfo').textContent = `GPS: ${lat.toFixed(3)}, ${lon.toFixed(3)} → ${currentRegion}`;
+  searchLocalCheese(lat,lon); currentLat=lat; currentLon=lon;
+  if(lat>=50.5 && lat<=54 && lon>=3 && lon<=7.5) currentRegion='NL';
+  else if(lat>=47 && lat<=55.5 && lon>=5.5 && lon<=15.5) currentRegion='DE';
+  else if(lat>=49.4 && lat<=51.6 && lon>=2.5 && lon<=6.5) currentRegion='BE';
+  else currentRegion='DEFAULT';
+  currentCheeses=cheeseDB[currentRegion]||cheeseDB.DEFAULT;
+  document.getElementById('locBadge').textContent=currentRegion==='NL'?'📍 Gelderland, NL':currentRegion;
+  document.getElementById('gpsInfo').textContent=`GPS: ${lat.toFixed(3)},${lon.toFixed(3)} → ${currentRegion} - ${currentCheeses.length} lokale kazen`;
 }
 function initGPS(){
-if(!navigator.geolocation){document.getElementById('gpsInfo').textContent='Geen GPS, default NL'; return;}
-navigator.geolocation.getCurrentPosition(pos=>{detectRegion(pos.coords.latitude,pos.coords.longitude);},err=>{document.getElementById('gpsInfo').textContent='Locatie uit → NL (Duiven) default'; currentRegion='NL'; currentCheeses=cheeseDB.NL;},{enableHighAccuracy:false,timeout:5000});
+  if(!navigator.geolocation){document.getElementById('gpsInfo').textContent='Geen GPS, default NL'; return;}
+  navigator.geolocation.getCurrentPosition(p=>detectRegion(p.coords.latitude,p.coords.longitude),e=>{document.getElementById('gpsInfo').textContent='Locatie uit → NL default'; currentRegion='NL'; currentCheeses=cheeseDB.NL;},{timeout:5000});
 }
-initGPS(); setTimeout(()=>{ const hd=document.getElementById("historyDiv"); if(hd) hd.innerHTML=showHistory(); }, 500);
+initGPS();
+setTimeout(()=>{const hd=document.getElementById('historyDiv'); if(hd) hd.innerHTML=showHistory();},600);
 
 function detectDrinkFromText(text){
-  const t = text.toLowerCase();
-  // Priority 1: exact grape names - must be whole word
-  if(/\bsauvignon\b/.test(t)) return {name:"Sauvignon Blanc - Fris & Fruitig",desc:`✅ Herkend: Sauvignon Blanc`};
-  if(/\bchardonnay\b/.test(t)) return {name:"Chardonnay - Rijk & Romig",desc:`✅ Herkend: Chardonnay`};
-  if(/\briesling\b/.test(t)) return {name:"Riesling - Fris & Fruitig",desc:`✅ Herkend: Riesling`};
-  if(/\bcabernet\b|\bmerlot\b|\bpinot\s+noir\b|\bshiraz\b|\bsyrah\b/.test(t)) return {name:"Rode Wijn - Krachtig",desc:`✅ Herkend: Rode wijn`};
-  // Priority 2: beer - only if explicit
-  if(/\bwitbier\b|\bweizen\b|\bwit\s+bier\b/.test(t)) return {name:"Witbier - Zacht & Kruidig",desc:`✅ Herkend: Witbier`};
-  if(/\bport\b|\bporto\b/.test(t)) {
-    // extra check: not "imported" - need word boundary already
-    return {name:"Port - Zoet & Warm",desc:`✅ Herkend: Port`};
-  }
-  if(/\bbier\b|\bipa\b|\bpils\b/.test(t)) return {name:"Bier - Kruidig",desc:`✅ Herkend: Bier`};
-  // If nothing found
+  const t=text.toLowerCase();
+  if(/\bsauvignon\b/.test(t)) return {name:"Sauvignon Blanc",desc:"✅ Herkend: Sauvignon Blanc"};
+  if(/\bchardonnay\b/.test(t)) return {name:"Chardonnay",desc:"✅ Herkend: Chardonnay"};
+  if(/\briesling\b/.test(t)) return {name:"Riesling",desc:"✅ Herkend: Riesling"};
+  if(/\bcabernet\b|\bmerlot\b|\bpinot\b/.test(t)) return {name:"Rode Wijn",desc:"✅ Herkend: Rood"};
+  if(/\bwitbier\b|\bweizen\b/.test(t)) return {name:"Witbier",desc:"✅ Herkend: Witbier"};
+  if(/\bport\b|\bporto\b/.test(t)) return {name:"Port",desc:"✅ Herkend: Port"};
   return null;
 }
-
 function showResult(drink, previewSrc, ocrText){
   document.getElementById('previewImg').src=previewSrc;
   document.getElementById('uploadCard').style.display='none';
   document.getElementById('resultCard').style.display='block';
   document.getElementById('drinkName').textContent=drink.name;
-  document.getElementById('drinkDesc').textContent=drink.desc + (ocrText?` | OCR: ${ocrText.substring(0,80)}`:'');
-  document.getElementById('cheeseTitle').textContent = `Kazen uit ${currentRegion}:`;
-  autoSavePhoto(previewSrc, drink.name);
+  document.getElementById('drinkDesc').textContent=drink.desc + (ocrText?' | '+ocrText.slice(0,80):'');
+  document.getElementById('cheeseTitle').textContent=`🧀 Kazen uit ${currentRegion} (plaatselijk):`;
   const shuffled=[...currentCheeses].sort(()=>0.5-Math.random()).slice(0,6);
-  document.getElementById('cheeseList').innerHTML=shuffled.map(c=>`<div class="cheese"><b>${c.n}</b><br><span style="font-size:12px;color:#888">${c.o}</span><br><span style="font-size:13px">${c.r}</span></div>`).join('') + `<div style="margin-top:16px"><button style="width:100%;padding:10px;border-radius:12px;border:1px solid #ddd;background:#fff" onclick="document.getElementById('manualBox').style.display='block'">❌ Niet goed? Corrigeer</button><div id="manualBox" style="display:none;margin-top:10px">${drinks.map(d=>`<button onclick="correctDrink('${d.name}')" style="display:block;width:100%;text-align:left;padding:8px;margin-top:6px;border-radius:10px;border:1px solid #eee">${d.name}</button>`).join('')}</div></div>`;
-}
-function correctDrink(name){
- const d = drinks.find(x=>x.name===name);
- if(d){ document.getElementById('drinkName').textContent=d.name; document.getElementById('drinkDesc').textContent=d.desc+' (handmatig)'; }
- document.getElementById('manualBox').style.display='none';
+  document.getElementById('cheeseList').innerHTML=shuffled.map(c=>`<div class="cheese"><b>${c.n}</b><br><span style="color:#888;font-size:11px">${c.o}</span><br>${c.r}</div>`).join('');
+  autoSavePhoto(previewSrc, drink.name);
+  document.getElementById('historyDiv').innerHTML=showHistory();
+  updateProeverijBadge();
+  window.scrollTo(0,0);
 }
 function handleFile(f){
- if(!f) return;
- const previewSrc = URL.createObjectURL(f);
- document.getElementById('ocrInfo').textContent='🔍 Etiket lezen... even wachten';
- document.getElementById('previewImg').src=previewSrc;
- if(window.Tesseract){
-   Tesseract.recognize(f,'nld+eng', { logger: m=>{ document.getElementById('ocrInfo').textContent = m.status + ' ' + Math.round((m.progress||0)*100)+'%' } }).then(({data:{text, confidence}})=>{
-     console.log('OCR:',text);
-     document.getElementById('ocrInfo').textContent='Gevonden tekst: '+text.substring(0,100);
-     let drink = detectDrinkFromText(text);
-     if(!drink){ drink={name:"Sauvignon? Kies zelf - OCR onzeker",desc:`Kon geen duidelijk druif vinden. OCR zag: "${text.substring(0,80)}" - kies hieronder`}; }
-     if(confidence && confidence < 30){ drink.desc += ` (lage zekerheid ${Math.round(confidence)}%)`; }
-     showResult(drink,previewSrc,text);
-   }).catch(e=>{
-     document.getElementById('ocrInfo').textContent='OCR mislukt';
-     showResult(drinks[0],previewSrc,'');
-   });
- } else {
-   showResult(drinks[0],previewSrc,'');
- }
+  if(!f) return;
+  const previewSrc=URL.createObjectURL(f);
+  document.getElementById('ocrInfo').textContent='🔍 Etiket lezen...';
+  document.getElementById('previewImg').src=previewSrc;
+  if(window.Tesseract){
+    Tesseract.recognize(f,'nld+eng',{logger:m=>{document.getElementById('ocrInfo').textContent=m.status+' '+Math.round((m.progress||0)*100)+'%'}}).then(({data:{text,confidence}})=>{
+      document.getElementById('ocrInfo').textContent='Gevonden: '+text.slice(0,80)+' ('+Math.round(confidence)+'%)';
+      let drink=detectDrinkFromText(text);
+      if(!drink) drink={name:"Onbekend - kies handmatig",desc:`Kon niet herkennen: "${text.slice(0,60)}"`};
+      showResult(drink,previewSrc,text);
+    }).catch(e=>{ showResult({name:"Sauvignon Blanc (gok)",desc:"OCR mislukt"},previewSrc,''); });
+  } else {
+    showResult({name:"Sauvignon Blanc",desc:"Geen OCR"},previewSrc,'');
+  }
 }
 document.getElementById('file1').addEventListener('change',e=>handleFile(e.target.files[0]));
 document.getElementById('file2').addEventListener('change',e=>handleFile(e.target.files[0]));
 function resetApp(){
-  setTimeout(()=>{ document.getElementById('historyDiv').innerHTML = showHistory(); }, 200);
-
- document.getElementById('previewImg').src='';
- document.getElementById('resultCard').style.display='none';
- document.getElementById('uploadCard').style.display='block';
- document.getElementById('file1').value='';document.getElementById('file2').value='';
- document.getElementById('ocrInfo').textContent='';
+  document.getElementById('previewImg').src='';
+  document.getElementById('resultCard').style.display='none';
+  document.getElementById('uploadCard').style.display='block';
+  document.getElementById('file1').value=''; document.getElementById('file2').value='';
+  document.getElementById('ocrInfo').textContent='';
+  document.getElementById('historyDiv').innerHTML=showHistory();
 }
-</script>
-</body>
-</html>
+
+function addToProeverij(){
+  const drink=document.getElementById('drinkName').textContent;
+  const desc=document.getElementById('drinkDesc').textContent;
+  const cheeses=document.getElementById('cheeseList').innerHTML;
+  const imgSrc=document.getElementById('previewImg').src;
+  let list=JSON.parse(localStorage.getItem('proeverij')||'[]');
+  list.push({id:Date.now(),drink,desc,cheeses,img:imgSrc,date:new Date().toLocaleString('nl-NL'),region:currentRegion});
+  localStorage.setItem('proeverij', JSON.stringify(list));
+  alert(`✅ Sheet opgeslagen! Nu ${list.length} aparte A4 sheets klaar om te printen.`);
+  updateProeverijBadge();
+}
+function updateProeverijBadge(){
+  const list=JSON.parse(localStorage.getItem('proeverij')||'[]');
+  const b=document.getElementById('proeverijBadge');
+  const b2=document.getElementById('proeverijBadge2');
+  if(b) b.textContent=`🍷 BEKIJK ALLE ${list.length} SHEETS & PRINT`;
+  if(b2) b2.textContent=`🍷 Mijn proeverij sheets (${list.length}) - Bekijk / Print`;
+}
+function showProeverij(){
+  const list=JSON.parse(localStorage.getItem('proeverij')||'[]');
+  const history=JSON.parse(localStorage.getItem('kaasHistory')||'[]');
+  const all=list.length>0?list:history.map(h=>({drink:h.drink,desc:'Uit geschiedenis',cheeses:`<div class="cheese">${h.drink} - ${h.region}</div>`,img:h.image,date:h.date,region:h.region}));
+  if(all.length===0){alert('Nog geen foto\'s. Maak eerst een foto'); return;}
+  let html=`<div id="printArea" style="padding:16px"><div class="no-print" style="margin-bottom:16px"><h1 style="font-family:Fraunces">🍷 Proeverij Sheets - ${all.length} stuks</h1><p>Elke sheet = 1 A4. Print alles of per stuk.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="window.print()" style="padding:12px 18px;background:#111;color:#fff;border:none;border-radius:12px">🖨️ Print ALLE sheets</button><button onclick="downloadProeverijPDF()" style="padding:12px 18px;background:#2e7d32;color:#fff;border:none;border-radius:12px">📄 Download PDF</button><button onclick="clearProeverij()" style="padding:12px 18px;background:#ffebee;border:none;border-radius:12px">🗑️ Wissen</button><button onclick="document.getElementById('proeverijView').style.display='none'" style="padding:12px 18px">Sluiten</button></div><hr></div>`;
+  all.forEach((item,i)=>{
+    html+=`<div class="sheet"><div style="display:flex;justify-content:space-between"><span style="background:#111;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px">Sheet ${i+1}/${all.length}</span><span style="font-size:11px;color:#888">${item.date} | ${item.region}</span></div><div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap"><img src="${item.img}" style="width:200px;height:280px;object-fit:contain;border-radius:12px;background:#f9f6ef"><div style="flex:1;min-width:200px"><h2 style="font-family:Fraunces;margin:0 0 6px">${item.drink}</h2><p style="color:#666;font-size:12px">${item.desc}</p><h3 style="font-size:14px;margin-top:10px">🧀 Kazen uit ${item.region}:</h3><div style="font-size:12px">${item.cheeses}</div><div style="margin-top:10px;padding:8px;background:#fbf8f1;border-radius:8px;font-size:10px">📍 Te koop bij: Kaashandel Duiven, Boerderijwinkel Zevenaar, Doesburgse Mosterd</div></div></div><div class="no-print" style="margin-top:8px"><button onclick="printSheet(${i})" style="padding:6px 12px;border-radius:8px;border:1px solid #ddd">🖨️ Print alleen deze</button></div></div>`;
+  });
+  html+=`</div>`;
+  let div=document.getElementById('proeverijView');
+  if(!div){div=document.createElement('div'); div.id='proeverijView'; div.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:#fbf8f1;overflow:auto;z-index:9999;padding:16px'; document.body.appendChild(div);}
+  div.innerHTML=html; div.style.display='block';
+}
+function printSheet(i){
+  const sheets=document.querySelectorAll('.sheet');
+  const win=window.open('','','height=900,width=700');
+  win.document.write('<html><head><title>Sheet</title></head><body>'+sheets[i].innerHTML+'</body></html>'); win.document.close(); win.print();
+}
+function downloadProeverijPDF(){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF();
+  const list=JSON.parse(localStorage.getItem('proeverij')||'[]');
+  const history=JSON.parse(localStorage.getItem('kaasHistory')||'[]');
+  const all=list.length>0?list:history;
+  if(all.length===0) return;
+  all.forEach((item,i)=>{ if(i>0) doc.addPage(); doc.setFontSize(16); doc.text(`Sheet ${i+1}: ${item.drink}`,10,15); doc.setFontSize(10); doc.text(`${item.date} | ${item.region}`,10,22); doc.setFontSize(11); doc.text('Kazen uit regio:',10,30); const txt=(item.cheeses||'').replace(/<[^>]*>/g,' ').slice(0,400); const lines=doc.splitTextToSize(txt,180); doc.text(lines,10,38); });
+  doc.save(`proeverij-sheets-${new Date().toISOString().slice(0,10)}.pdf`);
+}
+function clearProeverij(){ if(confirm('Alle sheets wissen?')){localStorage.removeItem('proeverij'); const v=document.getElementById('proeverijView'); if(v) v.style.display='none'; updateProeverijBadge();}}
+setTimeout(updateProeverijBadge,600);
+</script></body></html>
