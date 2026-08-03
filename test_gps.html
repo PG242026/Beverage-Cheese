@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPS Test</title>
+<style>body{font-family:system-ui;padding:20px;line-height:1.6}button{padding:14px 20px;font-size:16px;border-radius:12px;border:0;background:black;color:white;width:100%}pre{background:#f5f5f5;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-all}</style>
+</head>
+<body>
+<h2>📍 GPS Raw Test</h2>
+<p>Klik en geef toestemming voor locatie:</p>
+<button onclick="getLoc()">Test mijn GPS</button>
+<div id="out" style="margin-top:20px"></div>
+<script>
+function getLoc(){
+  const out=document.getElementById('out');
+  out.innerHTML='GPS zoeken... (ga naar buiten/bij raam)';
+  if(!navigator.geolocation){out.innerHTML='Geolocation niet ondersteund';return}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const {latitude, longitude, accuracy}=pos.coords;
+    out.innerHTML=`
+      <b>Latitude:</b> ${latitude}<br>
+      <b>Longitude:</b> ${longitude}<br>
+      <b>Accuracy:</b> ${accuracy}m<br><br>
+      <b>Google Maps link:</b><br>
+      <a href="https://www.google.com/maps?q=${latitude},${longitude}" target="_blank">Open in Maps</a><br><br>
+      <div id="reverse">Reverse geocode laden...</div>
+    `;
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=nl`);
+      const j=await r.json();
+      document.getElementById('reverse').innerHTML=`<pre>${JSON.stringify(j.address,null,2)}</pre>`;
+    }catch(e){
+      document.getElementById('reverse').innerHTML='Reverse failed: '+e;
+    }
+  }, err=>{
+    out.innerHTML=`FOUT: ${err.message} (code ${err.code})<br><br>1 = toestemming geweigerd<br>2 = geen GPS<br>3 = timeout`;
+  }, {enableHighAccuracy:true, timeout:15000, maximumAge:0});
+}
+</script>
+</body>
+</html>
