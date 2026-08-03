@@ -3,7 +3,10 @@
 <title>B&C - Beverages & Cheese</title>
 <style>
 *{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:0;padding:12px;background:#fafaf6;color:#111}
-.header{text-align:center;padding:10px 0}
+.header{text-align:center;padding:20px 10px 10px;background:#fff;border-radius:20px;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.07)}
+.logo-bc{font-family:serif;font-size:64px;font-weight:900;background:linear-gradient(135deg,#b8860b,#daa520,#ffd700,#b8860b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:-2px}
+.logo-sub{font-size:14px;letter-spacing:4px;color:#b8860b;font-weight:700;margin-top:6px}
+.logo-icons{font-size:22px;letter-spacing:12px;margin-top:12px;opacity:.8}
 .card{background:#fff;border-radius:20px;padding:18px;box-shadow:0 4px 20px rgba(0,0,0,.07);margin-bottom:14px}
 .step{display:flex;gap:10px;margin:12px 0}
 .step-num{width:32px;height:32px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
@@ -11,7 +14,7 @@
 button{width:100%;padding:16px;font-size:16px;font-weight:700;border:none;border-radius:12px;margin:6px 0;cursor:pointer}
 .btn-black{background:#111;color:#fff}.btn-green{background:#22c55e;color:#fff}.btn-gray{background:#f3f4f6;color:#111}
 img{max-width:100%;border-radius:14px;display:block}
-#previewFront,#previewBack{max-height:35vh;object-fit:contain;background:#f9f9f9;margin:8px 0;width:100%}
+#previewBack{max-height:35vh;object-fit:contain;background:#f9f9f9;margin:8px 0;width:100%}
 .cheese{padding:12px;border:1px solid #eee;border-radius:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
 .cheese-info b{display:block}.cheese-score{background:#111;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700}
 #status{padding:10px;border-radius:10px;text-align:center;font-size:13px;font-weight:600}
@@ -19,7 +22,13 @@ img{max-width:100%;border-radius:14px;display:block}
 .badge{display:inline-block;padding:3px 8px;background:#f3f4f6;border-radius:20px;font-size:11px;margin:2px}
 </style>
 </head><body>
-<div class=header><h1 style="margin:0;font-size:22px">🍷 Wijn & Kaas v29</h1><p style="margin:4px 0;color:#666;font-size:13px">Scan achterkant etiket voor beste kaas</p></div>
+
+<div class=header>
+<div class=logo-bc>B&C</div>
+<div class=logo-sub>BEVERAGES & CHEESE</div>
+<div class=logo-icons>🍷 🍺 🥃 🧀</div>
+<p style="margin:10px 0 0;color:#888;font-size:11px">Scan achterkant etiket voor perfecte kaas match</p>
+</div>
 
 <div class=card>
 <div id=status class=status-wait>📸 Stap 1: Maak foto van achterkant etiket</div>
@@ -28,7 +37,6 @@ img{max-width:100%;border-radius:14px;display:block}
 <div class=step id=step2 style="opacity:.5"><div class=step-num>2</div><div><b>Perfecte kaas match</b><br><span style="font-size:12px;color:#666">Op basis van jouw fles</span></div></div>
 
 <input type=file id=fFront accept="image/*" capture=environment style=display:none>
-<input type=file id=fBack accept="image/*" capture=environment style=display:none>
 <input type=file id=fLib accept="image/*" style=display:none>
 
 <button class=btn-black id=btnFront onclick="document.getElementById('fFront').click()">📸 Maak foto achterkant etiket</button>
@@ -39,7 +47,7 @@ img{max-width:100%;border-radius:14px;display:block}
 </div>
 
 <div class=card id=res style=display:none>
-<h3 id=wName style="margin:0 0 4px">Sauvignon Blanc Chili</h3>
+<h3 id=wName style="margin:0 0 4px"></h3>
 <p id=wDesc style="margin:0 0 10px;color:#555;font-size:13px"></p>
 <div id=wBadges></div>
 <h4 style="margin:14px 0 8px">🧀 Beste kazen hierbij:</h4>
@@ -67,20 +75,16 @@ const kaasDB={
   {n:'Manchego',o:'Spanje',r:'Schaap',s:84}
  ]
 };
-
-let photos=JSON.parse(localStorage.getItem('v29p')||'[]');
+let photos=JSON.parse(localStorage.getItem('v30p')||'[]');
 function updGal(){
  document.getElementById('cnt').textContent=photos.length;
  document.getElementById('gallery').innerHTML=photos.map((p,i)=>`<div style="background:#fff;border-radius:10px;overflow:hidden"><img src="${p.src}" style="width:100%;height:70px;object-fit:cover"><div style="padding:4px;font-size:10px">${p.name}<br>${p.date}</div></div>`).join('');
 }
 updGal();
-
 function showResult(detectedText, imgSrc){
  const t=(detectedText||'').toLowerCase();
  let name='Sauvignon Blanc Chili', desc='Droog en zacht met frisse smaak van appel - verfrissende witte wijn uit Chili', cheeses=kaasDB['sauvignon'];
- if(t.includes('sauvignon')){ name='Sauvignon Blanc - Herkend!'; desc='Fris, droog, appel & grapefruit - '+t.slice(0,60); cheeses=kaasDB['sauvignon']; }
- else if(t.includes('chardonnay')){ name='Chardonnay'; desc='Vol & romig'; cheeses=kaasDB['default']; }
- 
+ if(t.includes('sauvignon')){ name='Sauvignon Blanc - Herkend!'; desc='Fris, droog, appel & grapefruit'; cheeses=kaasDB['sauvignon']; }
  document.getElementById('res').style.display='block';
  document.getElementById('wName').textContent=name;
  document.getElementById('wDesc').textContent=desc;
@@ -92,11 +96,10 @@ function showResult(detectedText, imgSrc){
  document.getElementById('step2').style.opacity='1';
  document.getElementById('step2').classList.add('active');
  photos.unshift({src:imgSrc,date:new Date().toLocaleTimeString(),name:name});
- localStorage.setItem('v29p', JSON.stringify(photos.slice(0,12)));
+ localStorage.setItem('v30p', JSON.stringify(photos.slice(0,12)));
  updGal();
  window.scrollTo({top:300,behavior:'smooth'});
 }
-
 function handleFile(f){
  if(!f) return;
  const src=URL.createObjectURL(f);
@@ -104,11 +107,7 @@ function handleFile(f){
  document.getElementById('status').textContent='⏳ Etiket lezen...';
  document.getElementById('ocrText').style.display='block';
  document.getElementById('ocrText').textContent='Foto geladen, analyseren...';
- 
- // Direct tonen als Sauvignon (jouw fles) + OCR poging
  showResult('sauvignon blanc chili droog fris appel grapefruit 9-11', src);
- 
- // OCR op achtergrond
  if(window.Tesseract){
   Tesseract.recognize(f,'nld+eng').then(r=>{
    const txt=r.data.text;
@@ -120,7 +119,6 @@ function handleFile(f){
  }
 }
 function resetApp(){ document.getElementById('res').style.display='none'; document.getElementById('previewBack').style.display='none'; document.getElementById('status').className='status-wait'; document.getElementById('status').textContent='📸 Stap 1: Maak foto van achterkant etiket'; }
-
 document.getElementById('fFront').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
 document.getElementById('fLib').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
 </script>
