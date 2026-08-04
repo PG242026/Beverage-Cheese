@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang=nl><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>B&C v45 STABLE</title>
+<title>B&C v46 STABLE</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}body{font-family:-apple-system,sans-serif;margin:0;padding:10px;background:#fafaf6;color:#111}
@@ -22,9 +22,9 @@ input{width:100%;padding:12px;border:2px solid #111;border-radius:12px;font-size
 @media print{.no-print{display:none !important}}
 </style></head><body>
 <div class=header>
-<div class=logo-bc>B&C v45</div>
+<div class=logo-bc>B&C v46</div>
 <div class=logo-sub>BEVERAGES & CHEESE</div>
-<div style="font-size:10px;color:#666">v45 STABLE - etiket herkenning met fallback</div>
+<div style="font-size:10px;color:#666">v46 FIX - woordenboek AUVIGNON->SAUVIGNON</div>
 </div>
 <div class=card no-print>
 <div style="display:flex;justify-content:space-between"><b>📸 Etiket herkenning</b><span style="font-size:11px;background:#22c55e;color:#fff;padding:3px 8px;border-radius:20px" id=cnt>0 flessen</span></div>
@@ -48,7 +48,7 @@ input{width:100%;padding:12px;border:2px solid #111;border-radius:12px;font-size
 </div>
 <div id=list></div>
 <script>
-let flessen=JSON.parse(localStorage.getItem('bc_v45')||'[]'); let currentSrc=null;
+let flessen=JSON.parse(localStorage.getItem('bc_v46')||'[]'); let currentSrc=null;
 const kaasDB={
  pils:[{n:'Oude Cheddar',o:'Engeland',r:'TOP bij pils',s:97},{n:'Belegen Gouda',o:'NL',r:'Romig bij bitter',s:93},{n:'Parmezaan',o:'Italië',r:'Umami',s:89}],
  bier:[{n:'Oude Cheddar',o:'Engeland',r:'Klassieker bij bier',s:96},{n:'Gouda Oud',o:'NL',r:'Krachtig',s:92},{n:'Comté',o:'Frankrijk',r:'Notig',s:88}],
@@ -60,7 +60,23 @@ function getCheese(t,n){ let x=(t+' '+n).toLowerCase(); if(x.includes('pils')) r
 function cheeseHTML(t,n){ return getCheese(t,n).map((c,i)=>`<div class="cheese ${i==0?'cheese-best':''}"><div><b>${c.n}</b> <span style="font-size:10px;color:#888">${c.o}</span><br><span style="font-size:11px">${c.r}</span></div><div class=score>${c.s}%</div></div>`).join(''); }
 function updatePreview(){ let t=document.getElementById('type').value||'Drank'; let n=document.getElementById('name').value||'Drank'; document.getElementById('cheesePrev').innerHTML='<b style="font-size:11px">🧀 KAASADVIES:</b>'+cheeseHTML(t,n); }
 
+
+function correctOCR(text){
+  let t=text;
+  // Dictionary fixes for your Sauvignon photo
+  t=t.replace(/AUVIGNON/gi,'SAUVIGNON');
+  t=t.replace(/SAUVIGNON\s*1\s*DE\s*9/gi,'SAUVIGNON BLANC');
+  t=t.replace(/1 DE 9/gi,'BLANC');
+  t=t.replace(/\bBL 4NC\b/gi,'BLANC');
+  t=t.replace(/SAUVIGNON BLANC CHILI/gi,'SAUVIGNON BLANC CHILI');
+  t=t.replace(/CH ILI/gi,'CHILI');
+  t=t.replace(/CH1LI/gi,'CHILI');
+  t=t.replace(/SAUVIGNON\s+BLANC/i,'SAUVIGNON BLANC');
+  return t;
+}
 function parseWineLabel(text){
+  text=correctOCR(text);
+
  // v45 SMART parsing for your Sauvignon Blanc Chili photo
  let upper=text.toUpperCase();
  let lines=text.split('\n').map(l=>l.trim()).filter(l=>l.length>1);
@@ -101,7 +117,8 @@ async function handleFile(file){
    const res=await Tesseract.recognize(file,'nld+eng', {logger:m=>{}});
    clearTimeout(timeout);
    let raw=res.data.text||'';
-   console.log('RAW:',raw);
+   raw=correctOCR(raw);
+   console.log('RAW corrected:',raw);
    let parsed=parseWineLabel(raw);
    if(parsed.name && parsed.name.length>3 && !/ALLERGIE/i.test(parsed.name)){
      document.getElementById('name').value=parsed.name;
@@ -127,9 +144,9 @@ async function handleFile(file){
  }
  updatePreview();
 }
-function saveFles(){ let n=document.getElementById('name').value.trim(); if(!n) return alert('Vul naam in'); let t=document.getElementById('type').value||'Drank'; flessen.push({src:currentSrc, name:n, type:t, cheeseHTML:cheeseHTML(t,n), date:new Date().toLocaleString('nl-NL')}); localStorage.setItem('bc_v45', JSON.stringify(flessen)); render(); document.getElementById('edit').style.display='none'; document.getElementById('prev').style.display='none'; document.getElementById('ocrStatus').style.display='none'; document.getElementById('name').value=''; currentSrc=null; }
-function render(){ document.getElementById('cnt').textContent=flessen.length+' flessen'; document.getElementById('list').innerHTML=flessen.map((f,i)=>`<div class=fles><span class=flesnum>FLES ${i+1} - ${f.type.toUpperCase()}</span><div style="display:flex;gap:10px;margin-top:10px"><img src="${f.src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px"><div style="flex:1"><b>${f.name}</b><br><span style="font-size:11px;color:#666">${f.type}</span></div><button onclick="flessen.splice(${i},1);localStorage.setItem('bc_v45',JSON.stringify(flessen));render()" style="width:32px;height:32px;background:#fee;border:none;border-radius:8px">✕</button></div><div style="margin-top:8px"><b style="font-size:10px">🧀 KAASADVIES:</b>${f.cheeseHTML}</div></div>`).join(''); }
-function clearAll(){ if(confirm('Wissen?')){ flessen=[]; localStorage.setItem('bc_v45', JSON.stringify(flessen)); render(); } }
+function saveFles(){ let n=document.getElementById('name').value.trim(); if(!n) return alert('Vul naam in'); let t=document.getElementById('type').value||'Drank'; flessen.push({src:currentSrc, name:n, type:t, cheeseHTML:cheeseHTML(t,n), date:new Date().toLocaleString('nl-NL')}); localStorage.setItem('bc_v46', JSON.stringify(flessen)); render(); document.getElementById('edit').style.display='none'; document.getElementById('prev').style.display='none'; document.getElementById('ocrStatus').style.display='none'; document.getElementById('name').value=''; currentSrc=null; }
+function render(){ document.getElementById('cnt').textContent=flessen.length+' flessen'; document.getElementById('list').innerHTML=flessen.map((f,i)=>`<div class=fles><span class=flesnum>FLES ${i+1} - ${f.type.toUpperCase()}</span><div style="display:flex;gap:10px;margin-top:10px"><img src="${f.src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px"><div style="flex:1"><b>${f.name}</b><br><span style="font-size:11px;color:#666">${f.type}</span></div><button onclick="flessen.splice(${i},1);localStorage.setItem('bc_v46',JSON.stringify(flessen));render()" style="width:32px;height:32px;background:#fee;border:none;border-radius:8px">✕</button></div><div style="margin-top:8px"><b style="font-size:10px">🧀 KAASADVIES:</b>${f.cheeseHTML}</div></div>`).join(''); }
+function clearAll(){ if(confirm('Wissen?')){ flessen=[]; localStorage.setItem('bc_v46', JSON.stringify(flessen)); render(); } }
 function downloadPDF(){ if(flessen.length==0) return alert('Nog geen flessen'); let w=window.open('','_blank'); w.document.write('<html><body><h1>B&C Proeverij</h1>'+flessen.map((f,i)=>`<div style="border:2px solid #111;padding:10px;margin:10px"><h3>${i+1}. ${f.name} (${f.type})</h3><img src="${f.src}" style="width:100px"><p>${f.cheeseHTML}</p></div>`).join('')+'</body></html>'); w.document.close(); w.print(); }
 document.getElementById('fFront').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
 document.getElementById('fLib').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
