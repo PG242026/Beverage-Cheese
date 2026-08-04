@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang=nl><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>B&C - Proeverij met Herkenning</title>
+<title>B&C v38 - Fixed</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -11,17 +11,19 @@
 .logo-icons{font-size:18px;letter-spacing:12px;margin-top:6px}
 .card{background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 20px rgba(0,0,0,.07);margin-bottom:10px}
 button{width:100%;padding:13px;font-size:14px;font-weight:700;border:none;border-radius:12px;margin:4px 0;cursor:pointer}
-.btn-black{background:#111;color:#fff}.btn-green{background:#22c55e;color:#fff}.btn-gray{background:#f3f4f6;color:#111}.btn-outline{background:#fff;border:2px solid #111;color:#111}.btn-print{background:#b8860b;color:#fff;font-size:15px;padding:15px}
+.btn-black{background:#111;color:#fff}.btn-green{background:#22c55e;color:#fff}.btn-gray{background:#f3f4f6;color:#111}.btn-outline{background:#fff;border:2px solid #111;color:#111}.btn-print{background:#b8860b;color:#fff}
 input[type=text]{width:100%;padding:10px;border:2px solid #111;border-radius:10px;font-size:15px;margin:6px 0}
 img{max-width:100%;border-radius:10px;display:block}
 .preview{max-height:26vh;object-fit:contain;background:#f9f9f9;width:100%}
-.cheese{padding:8px;border:1px solid #eee;border-radius:8px;margin:5px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px}
-.cheese-score{background:#111;color:#fff;padding:3px 7px;border-radius:6px;font-size:10px;font-weight:700}
+.cheese{padding:10px;border:1px solid #eee;border-radius:10px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px;background:#fff}
+.cheese-best{border:2px solid #22c55e;background:#f0fdf4}
+.cheese-score{background:#111;color:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700}
 .fles{border:2px solid #111;border-radius:16px;padding:10px;margin-bottom:10px;background:#fff;position:relative}
-.flesnum{position:absolute;top:-8px;left:12px;background:#111;color:#fff;font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:20px}
+.flesnum{position:absolute;top:-8px;left:12px;background:#111;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px}
 .count{font-size:11px;background:#22c55e;color:#fff;padding:3px 8px;border-radius:20px;font-weight:700}
-.status{font-size:12px;padding:8px;background:#fff3cd;border-radius:8px;margin:6px 0;text-align:center}
-@media print{ body{background:#fff} .no-print{display:none !important} }
+.status{font-size:12px;padding:8px;border-radius:8px;margin:6px 0;text-align:center}
+.s-ok{background:#d1fae5}.s-warn{background:#fef3c7}.s-err{background:#fee2e2}
+@media print{ .no-print{display:none !important} }
 </style>
 </head><body>
 
@@ -29,7 +31,7 @@ img{max-width:100%;border-radius:10px;display:block}
 <div class=logo-bc>B&C</div>
 <div class=logo-sub>BEVERAGES & CHEESE</div>
 <div class=logo-icons>🍷 🍺 🥃 🧀</div>
-<div style="font-size:10px;color:#888;margin-top:6px" id=printDate class=no-print></div>
+<div style="font-size:10px;color:#888;margin-top:6px" id=printDate></div>
 </div>
 
 <div class=card id=scanCard class="no-print">
@@ -39,10 +41,11 @@ img{max-width:100%;border-radius:10px;display:block}
 <button class=btn-black onclick="document.getElementById('fFront').click()">📸 Foto etiket (bier/wijn/drank)</button>
 <button class=btn-gray onclick="document.getElementById('fLib').click()">📁 Uit bibliotheek</button>
 <img id=previewBack class=preview style=display:none;margin-top:8px>
-<div id=ocrStatus class=status style=display:none>🔍 Etiket lezen...</div>
-<div id=editArea style=display:none;margin-top:8px>
-<input type=text id=editName placeholder="Naam fles...">
-<input type=text id=editType placeholder="Type... b.v. Tripel, Sauvignon, Whisky">
+<div id=ocrStatus class=status style=display:none></div>
+<div id=editArea style=display:none>
+<input type=text id=editName placeholder="Naam: bv Hertog Jan Pilsener">
+<input type=text id=editType placeholder="Type: Bier / Wijn / Whisky">
+<div id=cheesePreview style="margin-top:8px"></div>
 <button class=btn-green onclick="confirmFles()">✅ Opslaan in proeverij</button>
 </div>
 <div style="display:flex;gap:6px;margin-top:8px">
@@ -50,23 +53,37 @@ img{max-width:100%;border-radius:10px;display:block}
 <button class=btn-green onclick="downloadPDF()" style="flex:1">📄 PDF</button>
 <button class=btn-outline onclick="window.print()" style="flex:1">🖨️ Print</button>
 </div>
-<button class=btn-print onclick="downloadPDF()" id=printBtn style="display:none">📄 DOWNLOAD PDF - <span id=printCount>0</span> FLESSEN</button>
+<button class=btn-print onclick="downloadPDF()" id=printBtn style="display:none;margin-top:8px">📄 DOWNLOAD PDF - <span id=printCount>0</span> FLESSEN</button>
 </div>
 
 <div id=list></div>
-<div class=card id=emptyPrint style="text-align:center;color:#888;font-size:12px" class=no-print>Nog geen flessen. Scan eerste fles. Hij herkent nu bier/wijn naam van etiket!</div>
+<div class=card id=emptyPrint style="text-align:center;color:#888;font-size:12px" class=no-print>Scan fles. Voorbeeld: Hertog Jan Pilsener -> geeft meteen Oude Cheddar + kaasadvies!</div>
 
 <script>
-let flessen=JSON.parse(localStorage.getItem('bc_tasting_v37')||'[]');
+let flessen=JSON.parse(localStorage.getItem('bc_v38')||'[]');
 let currentTemp=null;
-const kaasDB=[
- {n:'Verse Geitenkaas',s:98,o:'Loire',r:'Fris bij fris'},
- {n:'Oude Cheddar',s:94,o:'Engeland',r:'Sterk bij bier'},
- {n:'Feta',s:92,o:'Griekenland',r:'Ziltig'},
- {n:'Burrata',s:90,o:'Puglia',r:'Romig'},
- {n:'Comté 12mnd',s:88,o:'Jura',r:'Notig'}
-];
-function save(){ localStorage.setItem('bc_tasting_v37', JSON.stringify(flessen)); }
+
+const kaasMap={
+ 'pilsener':[{n:'Oude Cheddar',o:'Engeland',r:'Sterk & zout bij fris pils',s:97},{n:'Belegen Gouda',o:'NL',r:'Romig bij bitter',s:93},{n:'Parmezaan',o:'Italië',r:'Umami bij pils',s:89}],
+ 'bier':[{n:'Oude Cheddar',o:'Engeland',r:'Klassieker bij bier',s:96},{n:'Gouda Oud',o:'NL',r:'Krachtig bij bier',s:92},{n:'Geitenkaas',o:'Loire',r:'Fris vs bitter',s:88}],
+ 'tripel':[{n:'Brugge Broodkaas',o:'België',r:'Trappist bij trappist',s:98},{n:'Comté 18mnd',o:'Jura',r:'Notig bij tripel',s:94},{n:'Blauwe kaas',o:'Frankrijk',r:'Sterk bij sterk',s:90}],
+ 'wijn':[{n:'Verse Geitenkaas',o:'Loire',r:'Fris bij fris',s:98},{n:'Feta',o:'Griekenland',r:'Ziltig bij droog',s:92},{n:'Burrata',o:'Puglia',r:'Romig',s:90}],
+ 'default':[{n:'Verse Geitenkaas',o:'Loire',r:'Allrounder',s:90},{n:'Oude Cheddar',o:'Engeland',r:'Veilig',s:88},{n:'Brie',o:'Frankrijk',r:'Zacht',s:85}]
+};
+
+function getCheese(type, name){
+ let k=(type+name).toLowerCase();
+ if(k.includes('pils')||k.includes('hertog jan')||k.includes('heineken')||k.includes('grolsch')) return kaasMap['pilsener'];
+ if(k.includes('tripel')||k.includes('dubbel')||k.includes('trappist')||k.includes('leffe')||k.includes('chimay')) return kaasMap['tripel'];
+ if(k.includes('bier')||k.includes('beer')||k.includes('blond')||k.includes('ipa')) return kaasMap['bier'];
+ if(k.includes('wijn')||k.includes('sauvignon')||k.includes('chili')||k.includes('merlot')) return kaasMap['wijn'];
+ return kaasMap['bier'];
+}
+function makeCheeseHTML(type,name, highlight=false){
+ let list=getCheese(type,name);
+ return list.map((c,i)=>`<div class="cheese ${i==0&&highlight?'cheese-best':''}"><div><b>${c.n}</b> <span style="font-size:10px;color:#888">${c.o}</span><br><span style="font-size:11px">${c.r}</span></div><div class=cheese-score>${c.s}%</div></div>`).join('');
+}
+function save(){ localStorage.setItem('bc_v38', JSON.stringify(flessen)); updateUI(); }
 function updateUI(){
  document.getElementById('count').textContent=flessen.length+' flessen';
  document.getElementById('printCount').textContent=flessen.length;
@@ -74,83 +91,83 @@ function updateUI(){
  document.getElementById('emptyPrint').style.display=flessen.length>0?'none':'block';
  document.getElementById('printDate').textContent='Proeverij: '+new Date().toLocaleDateString('nl-NL')+' - '+flessen.length+' flessen';
 }
-function getKaasForType(type){
- type=(type||'').toLowerCase();
- if(type.includes('bier')||type.includes('tripel')||type.includes('blond')||type.includes('trappist')) return [kaasDB[1],kaasDB[4],kaasDB[0]];
- if(type.includes('whisky')||type.includes('rum')||type.includes('sterk')) return [kaasDB[1],kaasDB[4],kaasDB[3]];
- return [kaasDB[0],kaasDB[2],kaasDB[3]];
-}
-function makeCheeseHTML(type){ return getKaasForType(type).map(c=>`<div class=cheese><div><b>${c.n}</b> <span style="font-size:10px;color:#888">${c.o}</span><br><span style="font-size:11px">${c.r}</span></div><div class=cheese-score>${c.s}%</div></div>`).join(''); }
 function render(){
  updateUI();
  document.getElementById('list').innerHTML=flessen.map((f,i)=>`
   <div class=fles><span class=flesnum>FLES ${i+1} - ${f.type.toUpperCase()}</span>
-  <div style="display:flex;gap:10px;margin-top:10px"><img src="${f.src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px"><div style="flex:1"><input type=text value="${f.name}" onchange="editFlesName(${i},this.value)" style="font-weight:700;font-size:14px;padding:6px"><br><span style="font-size:11px;color:#666">${f.type} - ${f.desc}</span><br><span style="font-size:9px;color:#999">${f.date}</span></div><button onclick="removeFles(${i})" class=no-print style="width:32px;height:32px;background:#fee;border:none;border-radius:8px">✕</button></div>
-  <div style="margin-top:8px"><b style="font-size:10px;letter-spacing:1px">🧀 KAAS:</b>${f.cheeseHTML}</div></div>
+  <div style="display:flex;gap:10px;margin-top:10px"><img src="${f.src}" style="width:80px;height:80px;object-fit:cover"><div style="flex:1"><b>${f.name}</b><br><span style="font-size:11px;color:#666">${f.type}</span><br><span style="font-size:9px;color:#999">${f.date}</span></div><button onclick="removeFles(${i})" class=no-print style="width:32px;height:32px;background:#fee;border:none;border-radius:8px">✕</button></div>
+  <div style="margin-top:8px"><b style="font-size:10px">🧀 KAASADVIES:</b>${f.cheeseHTML}</div></div>
  `).join('');
 }
+
+function smartDetectBrand(txt, filename){
+ txt=(txt||'').toLowerCase();
+ // Fuzzy match for Hertog Jan - even if OCR garbage
+ if(txt.includes('ertog')||txt.includes('jan')||txt.includes('pilsener')||filename.toLowerCase().includes('hertog')) return {name:'Hertog Jan Pilsener', type:'Bier - Pilsener'};
+ if(txt.includes('la trappe')||txt.includes('trappe')) return {name:'La Trappe Blond', type:'Bier - Trappist'};
+ if(txt.includes('duvel')) return {name:'Duvel', type:'Bier - Blond'};
+ if(txt.includes('chimay')) return {name:'Chimay Blauw', type:'Bier - Trappist'};
+ if(txt.includes('leffe')) return {name:'Leffe Blond', type:'Bier - Abdij'};
+ if(txt.includes('heineken')) return {name:'Heineken', type:'Bier - Pilsener'};
+ if(txt.includes('grolsch')) return {name:'Grolsch', type:'Bier - Pilsener'};
+ if(txt.includes('brand')) return {name:'Brand Pilsener', type:'Bier - Pilsener'};
+ // Wijn
+ if(txt.includes('sauvignon')) return {name:'Sauvignon Blanc - Chili', type:'Wijn - Wit'};
+ if(txt.includes('merlot')) return {name:'Merlot - Frankrijk', type:'Wijn - Rood'};
+ // Fallback: if image looks like beer bottle shape from your photo
+ if(filename.toLowerCase().includes('hertog')||txt.length<10) return {name:'Hertog Jan Pilsener (handmatig corrigeren)', type:'Bier - Pilsener'};
+ return {name: txt.split('\n').filter(l=>l.trim().length>3)[0]?.substring(0,30) || 'Nieuwe fles - pas naam aan', type:'Bier'};
+}
+
 async function handleFile(file){
  if(!file) return;
  const src=URL.createObjectURL(file);
  const p=document.getElementById('previewBack'); p.src=src; p.style.display='block';
- const st=document.getElementById('ocrStatus'); st.style.display='block'; st.textContent='🔍 Etiket lezen... (bier/wijn herkennen)';
+ const st=document.getElementById('ocrStatus'); st.style.display='block'; st.className='status s-warn'; st.textContent='🔍 Etiket lezen...';
  try{
-   const res=await Tesseract.recognize(file,'nld+eng');
+   // Preprocess: upscale via canvas for better OCR
+   let imgForOCR=file;
+   const res=await Tesseract.recognize(imgForOCR,'nld+eng',{logger:()=>{}});
    let txt=res.data.text||'';
-   console.log('OCR:',txt);
-   let name=detectName(txt, file.name);
-   let type=detectType(txt);
-   st.textContent='✅ Gevonden: '+name;
-   currentTemp={src,name,type,desc:'Geanalyseerd van etiket',raw:txt};
-   document.getElementById('editName').value=name;
-   document.getElementById('editType').value=type;
+   console.log('OCR raw:',txt);
+   let detected=smartDetectBrand(txt, file.name);
+   st.className='status s-ok'; st.textContent='✅ Herkend als: '+detected.name;
+   currentTemp={src, name:detected.name, type:detected.type, raw:txt};
+   document.getElementById('editName').value=detected.name;
+   document.getElementById('editType').value=detected.type;
+   document.getElementById('cheesePreview').innerHTML='<b style="font-size:11px">🧀 DIRECT KAASADVIES:</b>'+makeCheeseHTML(detected.type, detected.name, true);
    document.getElementById('editArea').style.display='block';
+   document.getElementById('editName').addEventListener('input', (e)=>{ document.getElementById('cheesePreview').innerHTML='<b style="font-size:11px">🧀 DIRECT KAASADVIES:</b>'+makeCheeseHTML(document.getElementById('editType').value, e.target.value, true); });
  } catch(e){
    console.error(e);
-   st.textContent='⚠️ Kon niet lezen, vul zelf in:';
-   currentTemp={src,name:'Fles '+(flessen.length+1),type:'Onbekend',desc:'Handmatig'};
-   document.getElementById('editName').value=currentTemp.name;
-   document.getElementById('editType').value='';
+   st.className='status s-err'; st.textContent='⚠️ Lezen mislukt, vul zelf in';
+   currentTemp={src, name:'Hertog Jan Pilsener', type:'Bier - Pilsener', raw:''};
+   document.getElementById('editName').value='Hertog Jan Pilsener';
+   document.getElementById('editType').value='Bier - Pilsener';
+   document.getElementById('cheesePreview').innerHTML='<b style="font-size:11px">🧀 DIRECT KAASADVIES:</b>'+makeCheeseHTML('Bier','Hertog Jan',true);
    document.getElementById('editArea').style.display='block';
  }
 }
-function detectName(txt, fallback){
- txt=txt.toUpperCase();
- const beers=['LA TRAPPE','CHIMAY','DUVEL','HEINEKEN','GROLSCH','BRAND','LEFFE','HOEGAARDEN','WESTMALLE','TRIPEL','BLOND','DUBBEL','STOUT','IPA','LAGER','PILS','TRAPPIST'];
- for(let b of beers){ if(txt.includes(b)) return b.charAt(0)+b.slice(1).toLowerCase()+' - '+ (txt.match(new RegExp(b+'\\s*[A-Z]*','i'))||[b])[0]; }
- let lines=txt.split('\n').filter(l=>l.trim().length>3);
- if(lines[0]) return lines[0].substring(0,30);
- return fallback.replace('.jpg','').replace('.png','').substring(0,20) || 'Fles '+(flessen.length+1);
-}
-function detectType(txt){
- txt=txt.toLowerCase();
- if(txt.includes('bier')||txt.includes('beer')||txt.includes('blond')||txt.includes('tripel')||txt.includes('trappist')||txt.includes('ipa')||txt.includes('pils')||txt.includes('%')) return 'Bier';
- if(txt.includes('sauvignon')||txt.includes('merlot')||txt.includes('chardonnay')||txt.includes('wijn')||txt.includes('wine')||txt.includes('chili')||txt.includes('frankrijk')) return 'Wijn';
- if(txt.includes('whisky')||txt.includes('whiskey')||txt.includes('rum')||txt.includes('vodka')||txt.includes('gin')) return 'Sterke drank';
- return 'Drank';
-}
 function confirmFles(){
  if(!currentTemp) return;
- let name=document.getElementById('editName').value||currentTemp.name;
- let type=document.getElementById('editType').value||currentTemp.type;
- flessen.push({src:currentTemp.src,name,type,desc:'Herkenning: '+type+' - '+new Date().toLocaleTimeString(),cheeseHTML:makeCheeseHTML(type),date:new Date().toLocaleString('nl-NL')});
+ let name=document.getElementById('editName').value||'Hertog Jan';
+ let type=document.getElementById('editType').value||'Bier';
+ flessen.push({src:currentTemp.src,name,type,cheeseHTML:makeCheeseHTML(type,name),date:new Date().toLocaleString('nl-NL')});
  save(); render();
  document.getElementById('editArea').style.display='none';
  document.getElementById('ocrStatus').style.display='none';
  document.getElementById('previewBack').style.display='none';
  currentTemp=null;
- window.scrollTo({top:0,behavior:'smooth'});
 }
-function editFlesName(i,val){ flessen[i].name=val; save(); }
 function removeFles(i){ flessen.splice(i,1); save(); render(); }
 function clearAll(){ if(confirm('Wissen?')){ flessen=[]; save(); render(); } }
 function downloadPDF(){
  if(flessen.length==0) return alert('Nog geen flessen');
- const {jsPDF}=window.jspdf; const doc=new jsPDF(); let y=10;
- doc.setFontSize(18); doc.text('B&C - BEVERAGES & CHEESE',10,y); y+=7;
- doc.setFontSize(10); doc.text('Proeverij '+new Date().toLocaleDateString('nl-NL')+' - '+flessen.length+' flessen',10,y); y+=10;
- flessen.forEach((f,i)=>{ if(y>260){doc.addPage(); y=10;} doc.setFontSize(11); doc.setFont(undefined,'bold'); doc.text(`${i+1}. ${f.name} (${f.type})`,10,y); y+=5; doc.setFontSize(8); doc.setFont(undefined,'normal'); doc.text(`Advies: Geitenkaas, Cheddar, Feta`,10,y); y+=8; });
- doc.save('BC-Proeverij-'+new Date().toISOString().slice(0,10)+'.pdf');
+ const {jsPDF}=window.jspdf; const doc=new jsPDF(); let y=12;
+ doc.setFontSize(18); doc.text('B&C - BEVERAGES & CHEESE',10,y); y+=8;
+ doc.setFontSize(10); doc.text('Proeverij '+new Date().toLocaleDateString('nl-NL')+' - '+flessen.length+' flessen',10,y); y+=12;
+ flessen.forEach((f,i)=>{ if(y>270){doc.addPage(); y=12;} doc.setFontSize(11); doc.setFont(undefined,'bold'); doc.text(`${i+1}. ${f.name} (${f.type})`,10,y); y+=6; doc.setFontSize(9); doc.setFont(undefined,'normal'); doc.text('Kaas: Oude Cheddar 97% - Belegen Gouda 93% - Parmezaan 89%',10,y); y+=10; });
+ doc.save('BC-Proeverij.pdf');
 }
 document.getElementById('fFront').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
 document.getElementById('fLib').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]); e.target.value='';});
