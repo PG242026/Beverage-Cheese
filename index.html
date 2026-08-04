@@ -56,7 +56,7 @@ img{max-width:100%;border-radius:10px;display:block}
 <div style="display:flex;gap:6px;margin-top:10px">
 <button class=btn-outline onclick="clearAll()" style="flex:1">🗑️ Wissen</button>
 <button class=btn-green onclick="downloadPDF()" style="flex:1">📄 PDF</button>
-<button class=btn-outline onclick="window.print()" style="flex:1">🖨️ Print</button>
+<button class=btn-outline onclick="tryPrint()" style="flex:1">🖨️ Print</button>
 </div>
 <button class=btn-print onclick="downloadPDF()" id=printBtn style="display:none;margin-top:8px">📄 DOWNLOAD PDF PROEVERIJ - <span id=printCount>0</span> FLESSEN</button>
 </div>
@@ -136,7 +136,20 @@ function confirmFles(){
 }
 function removeFles(i){ flessen.splice(i,1); save(); render(); }
 function clearAll(){ if(confirm('Hele proeverij wissen?')){ flessen=[]; save(); render(); } }
+
+function tryPrint(){
+ if(flessen.length==0) return alert('Nog geen flessen');
+ // Probeer print, als het faalt -> download PDF
+ let isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+ if(isMobile){
+   if(confirm('Op telefoon werkt printen vaak niet (printer niet gevonden).\n\nWil je PDF downloaden? Die kan je wel printen op PC.\n\nOK = PDF downloaden\nAnnuleren = toch proberen te printen')){
+     downloadPDF(); return;
+   }
+ }
+ window.print();
+}
 function downloadPDF(){
+
  if(flessen.length==0) return alert('Nog geen flessen');
  const {jsPDF}=window.jspdf; const doc=new jsPDF(); let y=12;
  doc.setFontSize(18); doc.text('B&C - BEVERAGES & CHEESE',10,y); y+=8;
