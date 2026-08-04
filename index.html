@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang=nl><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>B&C v43 - Etiket Herkenning</title>
+<title>B&C v44 - Allergie Fix</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box}body{font-family:-apple-system,sans-serif;margin:0;padding:10px;background:#fafaf6;color:#111}
@@ -23,10 +23,10 @@ input{width:100%;padding:12px;border:2px solid #111;border-radius:12px;font-size
 </style></head><body>
 
 <div class=header>
-<div class=logo-bc>B&C v43</div>
+<div class=logo-bc>B&C v44</div>
 <div class=logo-sub>BEVERAGES & CHEESE</div>
 <div style="font-size:12px;margin-top:2px">🍷 🍺 🥃 🧀</div>
-<div style="font-size:10px;color:#666;margin-top:6px">Etiket herkenning - voor & achterkant - wijn bier sterk</div>
+<div style="font-size:10px;color:#666;margin-top:6px">v44 FIX: leest bovenkant, negeert allergie, wit/rood fix</div>
 </div>
 
 <div class=card no-print>
@@ -65,7 +65,12 @@ const kaasDB={
 
 function detectTypeFromText(txt){
  let t=txt.toLowerCase();
- if(/sauvignon|chardonnay|merlot|cabernet|shiraz|malbec|pinot|riesling|wijn|wine|chili|bordeaux|vintage|alcohol.*%/.test(t)) return t.includes('wit')||t.includes('blanc')||t.includes('sauvignon')||t.includes('chardonnay')?'Wijn - Wit':'Wijn - Rood';
+ // v44 FIX: Sauvignon Blanc = wit, not rood!
+ if(/sauvignon blanc|sauvignon|chardonnay|pinot grigio|riesling|wit|blanc|white/.test(t) && !/merlot|cabernet.*sauvignon/.test(t)) return 'Wijn - Wit';
+
+ let t2=txt.toLowerCase();
+ if(/merlot|cabernet|pinot noir|shiraz|malbec|rood|rouge|red/.test(t2) && !/sauvignon blanc/.test(t2)) return 'Wijn - Rood';
+ if(/sauvignon|chardonnay|riesling|wijn|wine|chili|bordeaux|vintage/.test(t2)) return 'Wijn - Wit';
  if(/hertog jan|heineken|grolsch|pilsener|tripel|dubbel|blond|bier|beer|ipa|stout|trappist|leffe|chimay|duvel|brand/.test(t)) return t.includes('pils')?'Bier - Pilsener':'Bier';
  if(/whisky|whiskey|rum|vodka|gin|cognac|brandy|jenever/.test(t)) return 'Sterke drank';
  return 'Drank';
@@ -82,7 +87,31 @@ function getCheese(type,name){
 }
 function cheeseHTML(t,n){ return getCheese(t,n).map((c,i)=>`<div class="cheese ${i==0?'cheese-best':''}"><div><b>${c.n}</b> <span style="font-size:10px;color:#888">${c.o}</span><br><span style="font-size:11px">${c.r}</span></div><div class=score>${c.s}%</div></div>`).join(''); }
 
+
+function cleanOCRWithPosition(txt, fullText){
+ // v44: prioritize TOP of label, ignore bottom allergie info
+ let lines = fullText.split('\n').map((l,i)=>({text:l.trim(), idx:i})).filter(o=>o.text.length>2);
+ // Score lines: large caps at top are more likely name
+ let scored = lines.map(o=>{
+   let t=o.text;
+   let score=0;
+   if(/SAUVIGNON|BLANC|CHILI|MERLOT|CHARDONNAY|CABERNET|WINE|WIJN|CHILI/i.test(t)) score+=50;
+   if(/^[A-Z ]{4,}$/.test(t.trim())) score+=30; // all caps = name
+   if(o.idx < lines.length*0.4) score+=20; // top 40% bonus
+   if(/ALLERGIE|INGREDIENT|BEVAT|SULFIET|E-\d+|BARCODE|0,75L|ALCOHOL.*%/i.test(t)) score-=100; // blacklist bottom
+   if(/^[\|\:0-9\s\=]+$/.test(t)) score-=100;
+   let letters=(t.match(/[a-zA-Z]/g)||[]).length;
+   if(letters/t.length < 0.5) score-=50;
+   return {text:t, score:score, idx:o.idx};
+ });
+ scored.sort((a,b)=>b.score-a.score);
+ return scored.filter(s=>s.score>0).map(s=>s.text);
+}
 function cleanOCR(txt){
+ // legacy wrapper
+ return txt.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+}
+
  // Remove garbage like || : a 3 4
  let lines=txt.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
  // Filter out lines that are mostly symbols/numbers
@@ -105,7 +134,9 @@ async function handleFile(file){
    const res=await Tesseract.recognize(file,'nld+eng+fra+deu', {logger:()=>{}});
    let raw=res.data.text||'';
    console.log('OCR RAW:',raw);
-   let cleaned=cleanOCR(raw);
+   let cleaned=cleanOCRWithPosition(raw, raw);
+   if(cleaned.length==0) cleaned=cleanOCR(raw);
+
    console.log('Cleaned:',cleaned);
    
    if(cleaned.length==0){
@@ -113,11 +144,20 @@ async function handleFile(file){
      document.getElementById('name').value='';
      document.getElementById('type').value='Drank';
    } else {
-     // Best line as name - longest meaningful line
-     let nameLine=cleaned.sort((a,b)=>b.length-a.length)[0]||cleaned[0];
-     // If multiple lines, try to find most name-like (2-4 words, capitalized)
-     let candidate=cleaned.find(l=>l.split(' ').length>=2 && l.split(' ').length<=5 && /[A-Z]/.test(l))||nameLine;
      let fullText=cleaned.join(' ');
+     // v44: construct name from top scoring lines, not just one
+     let topNames=cleaned.slice(0,3).join(' ').replace(/\s+/g,' ').trim();
+     // If we have SAUVIGNON + BLANC + CHILI in list, combine them
+     let hasSauv=cleaned.find(l=>/SAUVIGNON/i.test(l));
+     let hasBlanc=cleaned.find(l=>/BLANC/i.test(l));
+     let hasChili=cleaned.find(l=>/CHILI/i.test(l));
+     let candidate='';
+     if(hasSauv && hasBlanc) candidate=(hasSauv+' '+hasBlanc+(hasChili?' '+hasChili:'')).trim();
+     else candidate=topNames || cleaned[0];
+     candidate=candidate.substring(0,50);
+     // Clean up = signs
+     candidate=candidate.replace(/^=+\s*/,'').trim();
+
      let detectedType=detectTypeFromText(fullText);
      
      document.getElementById('name').value=candidate.substring(0,50);
