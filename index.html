@@ -24,6 +24,8 @@ img{max-width:100%;border-radius:10px;display:block}
  @page{margin:12mm}
 }
 </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head><body>
 
 <div class=header>
@@ -42,7 +44,7 @@ img{max-width:100%;border-radius:10px;display:block}
 <img id=previewBack class=preview style=display:none;margin-top:8px>
 <div style="display:flex;gap:6px;margin-top:8px">
 <button class=btn-outline onclick="clearAll()" style="flex:1">🗑️ Wissen</button>
-<button class=btn-green onclick="window.print()" style="flex:1">🖨️ Print proeverij</button>
+<button class=btn-green onclick="downloadPDF()" style="flex:1">📄 Download PDF</button>
 </div>
 <button class=btn-print onclick="window.print()" id=printBtn style="display:none">🖨️ PRINT PROEVERIJ LIJST - <span id=printCount>0</span> FLESSEN</button>
 </div>
@@ -78,7 +80,7 @@ function render(){
   <div style="margin-top:10px"><b style="font-size:11px;letter-spacing:1px">🧀 KAAS ADVIES:</b>${f.cheeseHTML}</div></div>
  `).join('');
  if(flessen.length>0){
-   document.getElementById('list').innerHTML+=`<div class=card class=no-print style="text-align:center;background:#f0fdf4;border:2px dashed #22c55e"><b>✅ ${flessen.length} flessen opgeslagen</b><br><span style="font-size:12px">Klik Print om mooie A4 lijst te maken voor proeverij</span><br><button class=btn-print onclick="window.print()" style="margin-top:10px">🖨️ PRINT NU</button><button class=btn-gray onclick="shareWA()" style="margin-top:6px">📤 Deel via WhatsApp</button></div>`;
+   document.getElementById('list').innerHTML+=`<div class=card class=no-print style="text-align:center;background:#f0fdf4;border:2px dashed #22c55e"><b>✅ ${flessen.length} flessen opgeslagen</b><br><span style="font-size:12px">Klik Print om mooie A4 lijst te maken voor proeverij</span><br><button class=btn-print onclick="downloadPDF()" style="margin-top:10px">📄 DOWNLOAD PDF (werkt altijd)</button><button class=btn-black onclick="window.print()" style="margin-top:6px">🖨️ Probeer direct printen</button><button class=btn-gray onclick="shareWA()" style="margin-top:6px">📤 Deel via WhatsApp</button><div style="font-size:11px;color:#888;margin-top:8px;text-align:left;background:#fff8e1;padding:8px;border-radius:8px"><b>Print lukt niet?</b><br>1. iPhone: klik Deel knop -> Print (AirPrint moet zelfde WiFi)<br>2. Geen AirPrint? Gebruik DOWNLOAD PDF en mail naar jezelf -> print op PC<br>3. Android: DOWNLOAD PDF -> openen -> printen</div></div>`;
  }
 }
 function makeCheeseHTML(){ return kaasDB.slice(0,3).map(c=>`<div class=cheese><div><b>${c.n}</b> <span style="font-size:10px;color:#888">- ${c.o}</span><br><span style="font-size:11px">${c.r}</span></div><div class=cheese-score>${c.s}%</div></div>`).join(''); }
@@ -94,7 +96,25 @@ function handleFile(file){
 }
 function removeFles(i){ flessen.splice(i,1); save(); render(); }
 function clearAll(){ if(confirm('Hele proeverij wissen?')){ flessen=[]; save(); render(); } }
+
+function downloadPDF(){
+ if(flessen.length==0) return alert('Nog geen flessen');
+ const {jsPDF}=window.jspdf;
+ const doc=new jsPDF();
+ let y=10;
+ doc.setFontSize(20); doc.text('B&C - BEVERAGES & CHEESE',10,y); y+=8;
+ doc.setFontSize(10); doc.text('Proeverij: '+new Date().toLocaleDateString('nl-NL')+' - '+flessen.length+' flessen',10,y); y+=10;
+ flessen.forEach((f,i)=>{
+   if(y>250){ doc.addPage(); y=10; }
+   doc.setFontSize(12); doc.setFont(undefined,'bold'); doc.text(`FLES ${i+1}: ${f.name}`,10,y); y+=6;
+   doc.setFontSize(9); doc.setFont(undefined,'normal'); doc.text(f.desc,10,y); y+=6;
+   doc.text('Kaas advies: Verse Geitenkaas 98% - Feta 92% - Burrata 90%',10,y); y+=10;
+ });
+ doc.save('BC-Proeverij-'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+function printPage(){ window.print(); }
 function shareWA(){
+
  let txt='B&C Proeverij - '+flessen.length+' flessen:%0A'+flessen.map((f,i)=>`${i+1}. ${f.name} -> Geitenkaas, Feta, Burrata`).join('%0A')+'%0A%0Ahttps://beverage-cheese.vercel.app/';
  window.open('https://wa.me/?text='+txt,'_blank');
 }
