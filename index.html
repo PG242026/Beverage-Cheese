@@ -21,7 +21,7 @@ input{width:100%;padding:13px;border:2px solid #111;border-radius:12px;font-size
 canvas{display:none}.loc{font-size:11px;color:#666;margin-top:6px}</style></head><body>
 <div class="header"><div class="logo">B&C</div><div style="font-size:10px;letter-spacing:3px;color:#c9a227;font-weight:700">BEVERAGES & CHEESE</div><div id="locDisplay" class="loc">📍 Duiven, Gelderland - lokaal advies aan</div></div>
 <div class="card">
-<b>Foto van je fles</b> <span class="badge">v51 CROP FIX</span>
+<b>Foto van je fles</b> <span class="badge"></span>
 <input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none">
 <input type="file" id="fileLib" accept="image/*" style="display:none">
 <button class="btn btn-black" onclick="document.getElementById('fileCam').click()">📸 Foto maken</button>
@@ -83,7 +83,7 @@ function enhance(file){
   };img.src=URL.createObjectURL(file);
  });
 }
-function correct(t){
+function correct(t){ if(!t) return ""; let raw=t; 
  let u=t.toUpperCase().replace(/[^A-Z ]/g,' ');
  u=u.replace(/\s+/g,' ').trim();
  if(u.includes('SAUVIGNON')&&u.includes('BLANC')) return 'SAUVIGNON BLANC CHILI';
@@ -95,7 +95,10 @@ function correct(t){
 }
 function detectType(tx){let u=tx.toUpperCase(); if(/SAUVIGNON|CHARDONNAY|WIT|BLANC|RIESLING|GRIGIO/.test(u)) return 'Wijn - Wit'; if(/MERLOT|CABERNET|PINOT NOIR|ROOD|ROUGE|SYRAH/.test(u)&&!u.includes('SAUVIGNON BLANC')) return 'Wijn - Rood'; if(/BIER|PILS|HERT|HEINEKEN/.test(u)) return 'Bier'; return 'Wijn - Wit';}
 function renderCheese(ty){let arr=CHEESE_DB[ty]||CHEESE_DB.Default; return arr.map((c,i)=>`<div class="cheese ${i==0?'cheese-best':''} ${c.local?'cheese-local':''}"><div><b>${c.n}</b> <span style="font-size:10px;color:#888">${c.o}</span> ${c.local?'<span style="font-size:9px;background:#c9a227;color:#fff;padding:2px 6px;border-radius:10px">LOKAAL</span>':''}<br><span style="font-size:11px">${c.r}</span></div><div class="score">${c.s}%</div></div>`).join('');}
-let cur=null; let tast=JSON.parse(localStorage.getItem('bc_v51')||'[]');
+
+let cur=null; let tast=JSON.parse(localStorage.getItem('bc_v52')||'[]');
+async function handleFile(f){if(!f)return;cur=URL.createObjectURL(f);let pv=document.getElementById('preview');pv.src=cur;pv.style.display='block';let st=document.getElementById('ocrStatus');st.style.display='block';st.className='status s-warn';st.textContent='📸 Foto gemaakt - tik je wijn hieronder';document.getElementById('result').style.display='block';document.getElementById('wineName').value='';document.getElementById('wineType').value='Wijn - Wit';showSug('SAUVIGNON');renderPrev(); try{ const blob=f; let r=await Tesseract.recognize(blob,'eng',{tessedit_pageseg_mode:6}); let txt=r.data.text; console.log('OCR',txt, r.data.confidence); if(r.data.confidence>75 && txt.length>5 && !/[%£00]{2,}|WO CO FON/.test(txt)){ let corr=correct(txt); if(corr && corr.length>4 && !/[%£]/.test(corr)){ document.getElementById('wineName').value=corr.includes('SAUVIGNON')?'SAUVIGNON BLANC CHILI':corr; st.className='status s-ok'; st.textContent='✅ Herkend: '+corr; renderPrev(); } } }catch(e){ console.log('ocr fail',e); }}
+
 async function handleFile(f){if(!f)return;cur=URL.createObjectURL(f);let pv=document.getElementById('preview');pv.src=cur;pv.style.display='block';let st=document.getElementById('ocrStatus');st.style.display='block';st.className='status s-warn';st.textContent='🔍 Alleen bovenkant etiket lezen...';document.getElementById('result').style.display='none';
 try{
  let {blob,img}=await enhance(f);
@@ -121,10 +124,10 @@ try{
 }catch(e){console.error(e);let st=document.getElementById('ocrStatus');st.className='status s-err';st.textContent='Kon niet lezen - kies hieronder';document.getElementById('result').style.display='block';showSug('SAUVIGNON BLANC CHILI');renderPrev();}}
 function showSug(cur){let box=document.getElementById('suggestBox');let q=(cur||'').toUpperCase();let list=DICT.filter(w=>w.includes(q)||q.includes(w.split(' ')[0])).slice(0,8);if(list.length==0)list=DICT.slice(0,6);box.innerHTML=list.map(w=>`<b onclick="document.getElementById('wineName').value='${w}';document.getElementById('wineType').value='${w.includes('SAUVIGNON')?'Wijn - Wit':'Wijn'}';renderPrev()">${w}</b>`).join('');}
 function renderPrev(){let t=document.getElementById('wineType').value||'Wijn - Wit';document.getElementById('cheeseAdvice').innerHTML=`<div style="font-size:11px;margin:6px 0"><b>6 kazen - 3 lokaal Duiven/Gelderland + 3 buitenlands:</b></div>`+renderCheese(t);}
-function saveForLater(){let n=document.getElementById('wineName').value.trim();let ty=document.getElementById('wineType').value.trim();if(!n)return alert('Vul naam');tast.push({src:cur,name:n,type:ty,cheeseHTML:renderCheese(ty)});localStorage.setItem('bc_v51',JSON.stringify(tast));renderTast();resetScan();}
-function renderTast(){document.getElementById('count').textContent=tast.length+' flessen';document.getElementById('tastingList').innerHTML=tast.map((f,i)=>`<div class="fles"><span class="flesnum">FLES ${i+1}</span><div style="display:flex;gap:10px;margin-top:10px"><img src="${f.src}" style="width:60px;height:60px;object-fit:cover;border-radius:8px"><div style="flex:1"><b>${f.name}</b><br><span style="font-size:11px">${f.type}</span></div><button onclick="tast.splice(${i},1);localStorage.setItem('bc_v51',JSON.stringify(tast));renderTast()" style="width:30px;height:30px;background:#fee;border:none;border-radius:8px">X</button></div><div style="margin-top:8px">${f.cheeseHTML}</div></div>`).join('')||'<p style="font-size:12px;color:#999">Nog leeg</p>';}
+function saveForLater(){let n=document.getElementById('wineName').value.trim();let ty=document.getElementById('wineType').value.trim();if(!n)return alert('Vul naam');tast.push({src:cur,name:n,type:ty,cheeseHTML:renderCheese(ty)});localStorage.setItem('bc_v52',JSON.stringify(tast));renderTast();resetScan();}
+function renderTast(){document.getElementById('count').textContent=tast.length+' flessen';document.getElementById('tastingList').innerHTML=tast.map((f,i)=>`<div class="fles"><span class="flesnum">FLES ${i+1}</span><div style="display:flex;gap:10px;margin-top:10px"><img src="${f.src}" style="width:60px;height:60px;object-fit:cover;border-radius:8px"><div style="flex:1"><b>${f.name}</b><br><span style="font-size:11px">${f.type}</span></div><button onclick="tast.splice(${i},1);localStorage.setItem('bc_v52',JSON.stringify(tast));renderTast()" style="width:30px;height:30px;background:#fee;border:none;border-radius:8px">X</button></div><div style="margin-top:8px">${f.cheeseHTML}</div></div>`).join('')||'<p style="font-size:12px;color:#999">Nog leeg</p>';}
 function resetScan(){document.getElementById('preview').style.display='none';document.getElementById('ocrStatus').style.display='none';document.getElementById('result').style.display='none';}
-function clearTasting(){if(confirm('Wissen?')){tast=[];localStorage.setItem('bc_v51',JSON.stringify(tast));renderTast();}}
+function clearTasting(){if(confirm('Wissen?')){tast=[];localStorage.setItem('bc_v52',JSON.stringify(tast));renderTast();}}
 function makePDF(){if(tast.length==0)return alert('Leeg');let w=window.open('','_blank');w.document.write('<h1>Proeverij Duiven</h1>'+tast.map((f,i)=>`<div style="border:2px solid #111;padding:10px;margin:10px"><h3>${i+1}. ${f.name}</h3><img src="${f.src}" style="width:100px"><div>${f.cheeseHTML}</div></div>`).join(''));w.document.close();w.print();}
 document.getElementById('fileCam').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
 document.getElementById('fileLib').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
